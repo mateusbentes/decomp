@@ -8,7 +8,7 @@ namespace Decomp.Core
     {
         private static Thread _workThread;
 
-        public static void StartDecompilation(string inputFile, string outputFile = null)
+        public static void StartDecompilation(string inputFile, string outputFile = null, string gameVersion = "VanillaWarband")
         {
             if (!File.Exists(inputFile))
             {
@@ -20,7 +20,7 @@ namespace Decomp.Core
                 outputFile = Path.ChangeExtension(inputFile, ".txt");
             }
 
-            _workThread = new Thread(() => Decompile(inputFile, outputFile));
+            _workThread = new Thread(() => Decompile(inputFile, outputFile, gameVersion));
             _workThread.Start();
         }
 
@@ -32,11 +32,11 @@ namespace Decomp.Core
             }
         }
 
-        private static void Decompile(string inputFile, string outputFile)
+        private static void Decompile(string inputFile, string outputFile, string gameVersion)
         {
             // Core decompilation logic goes here
             // This is a placeholder for the actual decompilation code
-            Console.WriteLine($"Decompiling {inputFile} to {outputFile}");
+            Console.WriteLine($"Decompiling {inputFile} to {outputFile} for game version {gameVersion}");
         }
     }
 }
