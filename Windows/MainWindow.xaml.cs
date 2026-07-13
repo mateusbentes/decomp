@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -18,7 +18,7 @@ namespace Decomp.Windows
 
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(1033);
             Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo(1033);
-            
+
             CurrentLanguageLabel.Content = GetCurrentLanguage() == "English" ? "Eng" : "Рус";
 
             Loaded += (s, e) => InitUserInterface();
@@ -60,7 +60,11 @@ namespace Decomp.Windows
 
                 DecompileButton.Content = Application.GetResource("LocalizationStop");
                 StatusTextBlock.Text = Application.GetResource("LocalizationDecompilation");
-                Decompiler.StartDecompilation();
+
+                // Get the selected game version from the ModeComboBox
+                string gameVersion = ModeComboBox.SelectedItem.ToString();
+
+                Decompiler.StartDecompilation(SourcePathTextBox.Text, OutputPathTextBox.Text, gameVersion);
             }
         }
 
@@ -144,7 +148,7 @@ namespace Decomp.Windows
 
             SourcePathTextBox.Text = source;
             OutputPathTextBox.Text = output;
-            
+
             OpenAfterCompleteCheckBox.IsChecked = key != null && ((int?)key.GetValue("OpenAfterComplete") ?? 1) != 0;
             ModeComboBox.SelectedIndex = (int?)key?.GetValue("Mode") ?? 2;
 
