@@ -31,28 +31,18 @@ namespace Decomp.Core.Operators
             switch (gameVersion)
             {
                 case "VanillaWarband":
-                    return GetWarbandOperators();
+                    return VanillaWarband.GetOperators();
                 case "VanillaClassic":
-                    return GetClassicOperators();
+                    return VanillaClassic.GetOperators();
+                case "WSE320":
+                    return WarbandScriptEnhancer320.GetOperators();
+                case "WSE450":
+                    return WarbandScriptEnhancer450.GetOperators();
+                case "Caribbean":
+                    return Caribbean.GetOperators();
                 default:
                     throw new ArgumentException("Invalid game version specified.");
             }
-        }
-
-        private static IEnumerable<Operator> GetWarbandOperators()
-        {
-            // Warband-specific operators
-            yield return new Operator("assign", 0, new List<string> { "var", "val" });
-            yield return new Operator("add", 1, new List<string> { "var", "val" });
-            // Add more Warband-specific operators here
-        }
-
-        private static IEnumerable<Operator> GetClassicOperators()
-        {
-            // Classic 1.011-specific operators
-            yield return new Operator("assign", 0, new List<string> { "var", "val" });
-            yield return new Operator("add", 1, new List<string> { "var", "val" });
-            // Add more Classic 1.011-specific operators here
         }
     }
 }
