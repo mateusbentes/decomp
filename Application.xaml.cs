@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using Microsoft.Win32;
 
 namespace Decomp
 {
@@ -13,10 +12,11 @@ namespace Decomp
         {
             CommandLineArgs = Environment.GetCommandLineArgs().Skip(1).ToArray();
 
-            var key = Registry.CurrentUser.OpenSubKey("Software\\WMD");
-            if (key == null) return;
-            var language = key.GetValue("Language") as string;
-            if (language == "Russian" || language == "English") Language = language;
+            // Remover a dependência do registro do Windows
+            // var key = Registry.CurrentUser.OpenSubKey("Software\\WMD");
+            // if (key == null) return;
+            // var language = key.GetValue("Language") as string;
+            // if (language == "Russian" || language == "English") Language = language;
         }
 
         public static IList<string> CommandLineArgs { get; private set; }
