@@ -10,7 +10,7 @@ namespace DecompilerCLI
             if (args.Length == 0)
             {
                 Console.WriteLine("Usage: DecompilerCLI <input_file> [output_file] [game_version]");
-                Console.WriteLine("Game versions: VanillaWarband, VanillaClassic");
+                Console.WriteLine("Game versions: VanillaClassic, VanillaWarband");
                 return;
             }
 
