@@ -1,4 +1,4 @@
-# Decomp: Taleworlds Engine Module Decompiler (CLI)
+# Decomp: Classic Taleworlds Engine Module Decompiler (CLI)
 
 A high-performance, cross-platform command-line tool that decompiles compiled module text files (`.txt`) back into Python source code (`.py`) compatible with the official Module System.
 
