@@ -7,13 +7,25 @@ namespace Decomp.Core.Shaders
     {
         public static bool IsWindowsPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+        [ComImport]
+        [Guid("8BA5FB08-5195-40e2-AC58-0D989C3A0102")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface ID3DBlob
+        {
+            [PreserveSig]
+            IntPtr GetBufferPointer();
+
+            [PreserveSig]
+            int GetBufferSize();
+        }
+
         [DllImport("d3dcompiler_47.dll", EntryPoint = "D3DDisassemble", CharSet = CharSet.Unicode)]
         private static extern int D3DDisassemble(
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] pSrcData,
             int SrcDataSize,
             uint Flags,
             string? szComments,
-            out IDisposable ppDisassembly);
+            out ID3DBlob ppDisassembly);
 
         public static void Decompile(string sFileName)
         {
@@ -44,7 +56,7 @@ namespace Decomp.Core.Shaders
                     shaderBytecode.Length,
                     0,
                     null,
-                    out IDisposable disassembly);
+                    out ID3DBlob blob);
 
                 if (result < 0)
                 {
@@ -52,14 +64,15 @@ namespace Decomp.Core.Shaders
                         $"D3DDisassemble failed with HRESULT: 0x{result:X8}");
                 }
 
-                // O tipo real é ID3DBlob, mas usamos dynamic para evitar dependências adicionais.
-                dynamic blob = disassembly;
                 IntPtr bufferPointer = blob.GetBufferPointer();
                 int bufferSize = blob.GetBufferSize();
                 string disassembledCode = Marshal.PtrToStringAnsi(bufferPointer, bufferSize);
-                blob.Dispose();
-
                 return disassembledCode ?? string.Empty;
+            }
+            catch (DllNotFoundException ex)
+            {
+                throw new InvalidOperationException(
+                    "d3dcompiler_47.dll not found. Ensure DirectX runtime is installed.", ex);
             }
             catch (Exception ex)
             {
