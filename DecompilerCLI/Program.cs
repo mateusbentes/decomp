@@ -157,9 +157,8 @@ namespace DecompilerCLI
             Console.WriteLine();
             Console.WriteLine("Supported shader formats:");
             Console.WriteLine("  .vsh / .psh       - DirectX text assembly (plain-text, no tool required)");
-            Console.WriteLine("  .fxc              - DirectX binary (requires d3dcompiler_47.dll on Windows");
+            Console.WriteLine("  .fxc              - DirectX binary bytecode (requires d3dcompiler_47.dll on Windows");
             Console.WriteLine("                      or dxbc-disassembler on Linux/macOS)");
-            Console.WriteLine("  .glsl             - OpenGL shader (requires spirv-cross)");
             Console.WriteLine();
             Console.WriteLine("Examples:");
             Console.WriteLine("  DecompilerCLI scripts.txt");
