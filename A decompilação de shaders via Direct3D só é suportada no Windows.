@@ -1,0 +1,11 @@
+- This error occurs when trying to decompile Direct3D shaders on Linux/macOS without `dxbc-disassembler`.
+- Install `dxbc-disassembler` as described in the [Prerequisites](#prerequisites) section.
+
+#### Error: "Failed to decompile shader"
+- Ensure the input file is a valid shader file (`.fx`, `.vsh`, `.psh`).
+- Check the file permissions.
+
+---
+
+### 4. Output Format
+Decompiled shaders are saved as `.txt` files with the following structure:
