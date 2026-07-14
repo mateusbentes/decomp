@@ -121,7 +121,7 @@ namespace Decomp.Core.Shaders
             {
                 if (blob != null && IsWindowsPlatform)
                 {
-                    Marshal.ReleaseComObject(blob);
+                    Marshal.FinalReleaseComObject(blob);
                 }
             }
         }
