@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace Decomp.Core
 {
     public static class Scripts
     {
-        public static string[] InitializeVariables() => File.Exists(Path.Combine(Common.InputPath, "variables.txt")) ? Win32FileReader.ReadAllLines(Path.Combine(Common.InputPath, "variables.txt")) : Array.Empty<string>();
+        public static string[] InitializeVariables() => File.Exists(Path.Combine(Common.InputPath, "variables.txt")) ? FileReader.ReadAllLines(Path.Combine(Common.InputPath, "variables.txt")) : Array.Empty<string>();
 
         public static string[] Initialize()
         {
@@ -40,12 +40,12 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fScripts = new Text(Path.Combine(Common.InputPath, "scripts.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_scripts.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_scripts.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Scripts);
             fScripts.GetString();
             int iScripts = fScripts.GetInt();
-            
+
             for (int s = 0; s < iScripts; s++)
             {
                 fSource.Write("  (\"{0}\",\r\n  [\r\n", fScripts.GetWord());
