@@ -237,7 +237,7 @@ from ID_troops import *";
 
         public static string GetIndentations(int indentation) => new string(' ', Math.Max(indentation, 0) << 1);
 
-        public static void PrintStatement(ref Text fInput, ref FileWriter fOutput, int iRecords, string strDefaultIndentation)
+        public static void PrintStatement(ref Text fInput, ref StreamWriter fOutput, int iRecords, string strDefaultIndentation)
         {
             ArgumentNullException.ThrowIfNull(fInput);
             ArgumentNullException.ThrowIfNull(fOutput);
@@ -674,7 +674,7 @@ from ID_troops import *";
         public static void GenerateId(string fileOut, IEnumerable<string> content, string prefix = "")
         {
             if (!NeedId || string.IsNullOrEmpty(prefix) || content == null) return;
-            using var f = new FileWriter(Path.Combine(OutputPath, fileOut));
+            using var f = new StreamWriter(Path.Combine(OutputPath, fileOut));
             if (prefix.Length > 0 && prefix[^1] != '_') prefix += '_';
             var enumerable = content.ToArray();
             for (int i = 0; i < enumerable.Length; i++) f.WriteLine("{0}{1} = {2}", prefix, enumerable[i], i);
