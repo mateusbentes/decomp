@@ -73,12 +73,20 @@ namespace Decomp.Core.Shaders
         {
             if (Shaders.IsWindowsPlatform)
             {
-                DecompileFxcWithD3DDisassemble(inputFile, outputFile);
+                // Try D3DDisassemble first; fall back to dxbc-disassembler if the DLL
+                // is not available or the call fails.
+                try
+                {
+                    DecompileFxcWithD3DDisassemble(inputFile, outputFile);
+                    return;
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("d3dcompiler_47.dll"))
+                {
+                    // DLL not found — fall through to the cross-platform disassembler.
+                }
             }
-            else
-            {
-                DecompileFxcWithDxbcDisassembler(inputFile, outputFile);
-            }
+
+            DecompileFxcWithDxbcDisassembler(inputFile, outputFile);
         }
 
         private static void DecompileFxcWithD3DDisassemble(string inputFile, string outputFile)
