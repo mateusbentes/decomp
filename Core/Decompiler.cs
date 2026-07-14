@@ -23,6 +23,9 @@ namespace Decomp.Core
             }
             else if (gameVersion.Equals("VanillaWFS", StringComparison.OrdinalIgnoreCase))
             {
+                // With Fire & Sword uses the same operator set as Warband 1153.
+                // Notify the caller so the substitution is not silent.
+                Console.WriteLine("Warning: 'VanillaWFS' is not a distinct operator set. Falling back to 'VanillaWarband' (Warband 1153).");
                 gameVersion = "VanillaWarband";
             }
 
@@ -30,14 +33,16 @@ namespace Decomp.Core
             {
                 "vanillaclassic" => new VanillaVersion(),
                 "vanillawarband" => new Warband1153Version(),
-                "wse320" => new WarbandScriptEnhancer320Version(),
-                "wse450" => new WarbandScriptEnhancer450Version(),
-                "caribbean" => new CaribbeanVersion(),
+                "warband1153"    => new Warband1153Version(),
+                "warband1171"    => new Warband1171Version(),
+                "wse320"         => new WarbandScriptEnhancer320Version(),
+                "wse450"         => new WarbandScriptEnhancer450Version(),
+                "caribbean"      => new CaribbeanVersion(),
                 _ => throw new ArgumentException($"Game version not supported: {gameVersion}")
             };
 
             string extension = Path.GetExtension(inputFile).ToLowerInvariant();
-            if (extension is ".fx" or ".vsh" or ".psh")
+            if (extension is ".fx" or ".vsh" or ".psh" or ".fxc" or ".glsl")
             {
                 string outputPath = outputFile ?? Path.ChangeExtension(inputFile, ".txt");
                 ShaderDecompiler.Decompile(inputFile, outputPath, gameVersion);
@@ -51,7 +56,6 @@ namespace Decomp.Core
                 ? new FileWriter(Console.Out)
                 : new FileWriter(outputFile);
 
-            // Do NOT manually call Dispose here; the using declarations above handle it.
             while (text.Peek() != -1)
             {
                 int iRecords = text.GetInt();
