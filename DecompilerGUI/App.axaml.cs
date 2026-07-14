@@ -4,25 +4,29 @@ using Avalonia.Markup.Xaml;
 using DecompilerGUI.ViewModels;
 using DecompilerGUI.Views;
 
-namespace DecompilerGUI;
-
-public partial class App : Application
+namespace DecompilerGUI
 {
-    public override void Initialize()
+    public class App : Application
     {
-        AvaloniaXamlLoader.Load(this);
-    }
+        public static Window MainWindow { get; private set; }
 
-    public override void OnFrameworkInitializationCompleted()
-    {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        public override void Initialize()
         {
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainViewModel(),
-            };
+            AvaloniaXamlLoader.Load(this);
         }
 
-        base.OnFrameworkInitializationCompleted();
+        public override void OnFrameworkInitializationCompleted()
+        {
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = new MainWindowViewModel()
+                };
+                MainWindow = desktop.MainWindow;
+            }
+
+            base.OnFrameworkInitializationCompleted();
+        }
     }
 }
