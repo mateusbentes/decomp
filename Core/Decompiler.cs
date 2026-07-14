@@ -14,7 +14,7 @@ namespace Decomp.Core
         {
             if (!File.Exists(inputFile))
             {
-                throw new FileNotFoundException("Arquivo de entrada não encontrado.", inputFile);
+                throw new FileNotFoundException("Input file not found.", inputFile);
             }
 
             if (string.IsNullOrEmpty(gameVersion))
@@ -33,7 +33,7 @@ namespace Decomp.Core
                 "wse320" => new WarbandScriptEnhancer320Version(),
                 "wse450" => new WarbandScriptEnhancer450Version(),
                 "caribbean" => new CaribbeanVersion(),
-                _ => throw new ArgumentException($"Versão do jogo não suportada: {gameVersion}")
+                _ => throw new ArgumentException($"Game version not supported: {gameVersion}")
             };
 
             string extension = Path.GetExtension(inputFile).ToLowerInvariant();
