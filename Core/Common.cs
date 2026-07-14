@@ -237,7 +237,7 @@ from ID_troops import *";
 
         public static string GetIndentations(int indentation) => new string(' ', Math.Max(indentation, 0) << 1);
 
-        public static void PrintStatement(ref Text fInput, ref StreamWriter fOutput, int iRecords, string strDefaultIndentation)
+        public static void PrintStatement(ref Text fInput, ref FileWriter fOutput, int iRecords, string strDefaultIndentation)
         {
             ArgumentNullException.ThrowIfNull(fInput);
             ArgumentNullException.ThrowIfNull(fOutput);
