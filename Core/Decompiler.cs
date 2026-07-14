@@ -45,7 +45,11 @@ namespace Decomp.Core
                 return;
             }
 
-            var operators = version.GetOperators().ToDictionary(op => op.Code, op => op);
+            // Use GroupBy + First to safely handle duplicate opcode values
+            // (e.g. "tutorial_box" and "dialog_box" both use code 1120 in Caribbean).
+            var operators = version.GetOperators()
+                .GroupBy(op => op.Code)
+                .ToDictionary(g => g.Key, g => g.First());
 
             using Text text = new Text(inputFile);
             using FileWriter output = outputFile == null
