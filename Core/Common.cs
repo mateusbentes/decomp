@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -68,32 +68,32 @@ from ID_troops import *";
 
         public static bool IsVanillaMode => SelectedMode == Mode.Vanilla;
 
-        public static IReadOnlyList<string> Procedures { get; set; }
-        public static IReadOnlyList<string> QuickStrings { get; set; }
-        public static IReadOnlyList<string> Strings { get; set; }
-        public static IReadOnlyList<string> Items { get; set; }
-        public static IReadOnlyList<string> Troops { get; set; }
-        public static IReadOnlyList<string> Factions { get; set; }
-        public static IReadOnlyList<string> Quests { get; set; }
-        public static IReadOnlyList<string> PTemps { get; set; }
-        public static IReadOnlyList<string> Parties { get; set; }
-        public static IReadOnlyList<string> Menus { get; set; }
-        public static IReadOnlyList<string> Sounds { get; set; }
-        public static IReadOnlyList<string> Skills { get; set; }
-        public static IReadOnlyList<string> Meshes { get; set; }
-        public static IReadOnlyList<string> Variables { get; set; }
-        public static IReadOnlyList<string> DialogStates { get; set; }
-        public static IReadOnlyList<string> Scenes { get; set; }
-        public static IReadOnlyList<string> MissionTemplates { get; set; }
-        public static IReadOnlyList<string> ParticleSystems { get; set; }
-        public static IReadOnlyList<string> SceneProps { get; set; }
-        public static IReadOnlyList<string> MapIcons { get; set; }
-        public static IReadOnlyList<string> Presentations { get; set; }
-        public static IReadOnlyList<string> Tableaus { get; set; }
-        public static IReadOnlyList<string> Animations { get; set; }
-        public static IReadOnlyList<string> Music { get; set; }
-        public static IReadOnlyList<string> Skins { get; set; }
-        public static IReadOnlyList<string> InfoPages { get; set; }
+        public static IReadOnlyList<string> Procedures { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> QuickStrings { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Strings { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Items { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Troops { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Factions { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Quests { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> PTemps { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Parties { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Menus { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Sounds { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Skills { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Meshes { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Variables { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> DialogStates { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Scenes { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> MissionTemplates { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> ParticleSystems { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> SceneProps { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> MapIcons { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Presentations { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Tableaus { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Animations { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Music { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> Skins { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> InfoPages { get; set; } = Array.Empty<string>();
 
         public static string GetCommonIdentifier(string prefix, IList<string> array, int index, bool useQuotes = false)
         {
@@ -139,12 +139,12 @@ from ID_troops import *";
             return useQuotes ? "\"" + s + "\"" : s;
         }
 
-        public static IReadOnlyDictionary<int, Operator> Operators { get; set; }
+        public static IReadOnlyDictionary<int, Operator> Operators { get; set; } = new Dictionary<int, Operator>();
 
-        public static Operator FindOperator(int operatorCode) => Operators.ContainsKey(operatorCode) ?  Operators[operatorCode] : new Operator(operatorCode.ToString(CultureInfo.GetCultureInfo("en-US")), operatorCode);
+        public static Operator FindOperator(int operatorCode) => Operators.TryGetValue(operatorCode, out var op) ? op : new Operator(operatorCode.ToString(CultureInfo.GetCultureInfo("en-US")), operatorCode);
 
-        public static string InputPath { get; set; }
-        public static string OutputPath { get; set; }
+        public static string InputPath { get; set; } = string.Empty;
+        public static string OutputPath { get; set; } = string.Empty;
 
         public static string GetParam(ulong lParam)
         {
@@ -293,7 +293,7 @@ from ID_troops import *";
         };
 
         public static string GetIndentations(int indentation) => new String(' ', Math.Max(indentation, 0) << 1);
-        
+
         public static void PrintStatement(ref Text fInput, ref Win32FileWriter fOutput, int iRecords, string strDefaultIndentation)
         {
             if (fInput == null) throw new ArgumentNullException(nameof(fInput));
@@ -350,15 +350,14 @@ from ID_troops import *";
                     strOpCode = op.Value;
                     fOutput.Write("{0}{1}({2}{3}{4}", strIdentations, strDefaultIndentation, strPrefixNeg, strPrefixThisOrNext, strOpCode);
                 }
-                
+
                 int iParams = fInput.GetInt();
                 for (int p = 0; p < iParams; p++)
                 {
                     var strParam = fInput.GetWord();
-                    fOutput.Write(", {0}", op.GetParameter(p, strParam));
+                    fOutput.Write(", {0}", op.GetParameter(p, strParam ?? string.Empty));
                 }
                 fOutput.WriteLine("),");
-
             }
         }
 
@@ -547,7 +546,6 @@ from ID_troops import *";
             51 => "gk_order_8",
             _ => $"0x{lKeyCode:x}",
         };
-        
 
         public static bool IsStringRegister(ulong lParam)
         {
@@ -616,7 +614,7 @@ from ID_troops import *";
             return sbFlag.ToString();
         }
 
-        public static string GetAgentClass(ulong lClass) => lClass switch 
+        public static string GetAgentClass(ulong lClass) => lClass switch
         {
             0 => "grc_infantry",
             1 => "grc_archers",
@@ -656,7 +654,6 @@ from ID_troops import *";
             25 => "mordr_form_5_row",
             _ => lOrder.ToString(CultureInfo.GetCultureInfo(1033)),
         };
-        
 
         public static string GetPartyBehavior(ulong lBehavior)
         {
@@ -675,7 +672,6 @@ from ID_troops import *";
             3 => "ca_charisma",
             _ => lAttribute.ToString(CultureInfo.GetCultureInfo("en-US")),
         };
-        
 
         public static string GetWeaponProficiency(ulong lProficiency) => lProficiency switch
         {
@@ -703,8 +699,7 @@ from ID_troops import *";
             9 => "ek_food",
             _ => lSlot.ToString(CultureInfo.GetCultureInfo("en-US")),
         };
-        
-        
+
         public static string GetTooltip(ulong t) => t switch
         {
             1 => "tooltip_agent",
@@ -736,12 +731,11 @@ from ID_troops import *";
             0x11 => "sort_f_ci | sort_f_desc",
             _ => sm.ToString(CultureInfo.GetCultureInfo("en-US")),
         };
-        
 
         public static bool NeedId { get; set; } = true;
         public static void GenerateId(string fileOut, IEnumerable<string> content, string prefix = "")
         {
-            if (!NeedId || prefix == null || content == null) return;
+            if (!NeedId || string.IsNullOrEmpty(prefix) || content == null) return;
             var f = new Win32FileWriter(Path.Combine(OutputPath, fileOut));
             if (prefix.Length > 0 && prefix[prefix.Length - 1] != '_') prefix += '_';
             var enumerable = content.ToArray();
