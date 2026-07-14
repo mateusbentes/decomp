@@ -39,11 +39,8 @@ namespace Decomp.Core.Shaders
                     // Use dxbc-disassembler on Linux/macOS
                     DecompileFxcWithDxbcDisassembler(inputFile, outputFile);
                 }
-                return;
             }
-
-            // Fallback to existing shader decompilation logic
-            if (isWarband && IsOpenGLShader(inputFile) && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            else if (isWarband && IsOpenGLShader(inputFile) && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 DecompileWarbandOpenGLShader(inputFile, outputFile);
             }
@@ -177,7 +174,6 @@ namespace Decomp.Core.Shaders
                     FileName = disassemblerPath,
                     Arguments = $"-disassemble \"{inputFile}\"",
                     RedirectStandardOutput = true,
-                    RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
                 }
@@ -185,14 +181,11 @@ namespace Decomp.Core.Shaders
 
             process.Start();
             string disassembledCode = process.StandardOutput.ReadToEnd();
-            string errorOutput = process.StandardError.ReadToEnd();
             process.WaitForExit();
 
             if (process.ExitCode != 0)
             {
-                throw new InvalidOperationException(
-                    $"Failed to disassemble .fxc file. Exit code: {process.ExitCode}\n" +
-                    $"Error output: {errorOutput}");
+                throw new InvalidOperationException($"Failed to disassemble .fxc file. Exit code: {process.ExitCode}");
             }
 
             File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
@@ -203,9 +196,7 @@ namespace Decomp.Core.Shaders
             string[] possiblePaths =
             {
                 "spirv-cross",
-                Path.Combine(AppContext.BaseDirectory, "spirv-cross"),
-                "/usr/bin/spirv-cross",
-                "/usr/local/bin/spirv-cross"
+                Path.Combine(AppContext.BaseDirectory, "spirv-cross")
             };
 
             foreach (string path in possiblePaths)
@@ -226,9 +217,7 @@ namespace Decomp.Core.Shaders
                 "dxbc-disassembler",
                 "dxbc-disassembler.exe",
                 Path.Combine(AppContext.BaseDirectory, "dxbc-disassembler"),
-                Path.Combine(AppContext.BaseDirectory, "dxbc-disassembler.exe"),
-                "/usr/bin/dxbc-disassembler",
-                "/usr/local/bin/dxbc-disassembler"
+                Path.Combine(AppContext.BaseDirectory, "dxbc-disassembler.exe")
             };
 
             foreach (string path in possiblePaths)
