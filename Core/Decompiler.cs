@@ -38,7 +38,7 @@ namespace Decomp.Core
             };
 
             // Obter a coleção de operadores da versão selecionada
-            var operators = Operator.GetCollection(version.GetOperators()).ToDictionary(op => op.Code, op => op);
+            var operators = version.GetOperators().ToDictionary(op => op.Code, op => op);
 
             // Processar o arquivo de entrada
             Text text = new Text(inputFile);
