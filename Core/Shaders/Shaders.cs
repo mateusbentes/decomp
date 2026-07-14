@@ -107,7 +107,11 @@ namespace Decomp.Core.Shaders
 
                 IntPtr bufferPointer = blob.GetBufferPointer();
                 int bufferSize = blob.GetBufferSize();
-                string disassembledCode = Marshal.PtrToStringAnsi(bufferPointer, bufferSize) ?? string.Empty;
+
+                // GetBufferSize() includes the null terminator; exclude it to avoid
+                // a trailing '\0' character in the returned string.
+                int safeSize = bufferSize > 0 ? bufferSize - 1 : 0;
+                string disassembledCode = Marshal.PtrToStringAnsi(bufferPointer, safeSize) ?? string.Empty;
 
                 return disassembledCode;
             }
