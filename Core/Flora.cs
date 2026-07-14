@@ -44,7 +44,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fFloraKinds = new Text(Path.Combine(Common.InputPath, "flora_kinds.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_flora_kinds.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_flora_kinds.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Flora);
 

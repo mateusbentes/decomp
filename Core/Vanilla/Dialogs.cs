@@ -9,7 +9,7 @@ namespace Decomp.Core.Vanilla
         public static void Decompile()
         {
             var fDialogs = new Text(Path.Combine(Common.InputPath, "conversation.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_dialogs.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_dialogs.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Dialogs);
             fDialogs.GetString();

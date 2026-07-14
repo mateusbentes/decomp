@@ -18,7 +18,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fGroundSpecs = new Text(Path.Combine(Common.InputPath, "ground_specs.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_ground_specs.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_ground_specs.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.GroundSpecs);
 

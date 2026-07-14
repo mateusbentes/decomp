@@ -57,8 +57,8 @@ namespace Decomp.Core.WSE2
 
         public static void Decompile()
         {
-            var fShaders = new Win32BinaryFileReader(Path.Combine(Common.InputPath, "core_shaders.brf"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "resource_shaders.py"));
+            var fShaders = new BinaryFileReader(Path.Combine(Common.InputPath, "core_shaders.brf"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "resource_shaders.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.ImprovedShaders);
 

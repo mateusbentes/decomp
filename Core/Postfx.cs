@@ -8,7 +8,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fPostfx = new Text(Path.Combine(Common.InputPath, "postfx.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_postfx.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_postfx.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Postfx);
             fPostfx.GetString();

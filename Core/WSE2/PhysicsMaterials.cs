@@ -7,8 +7,8 @@ namespace Decomp.Core.WSE2
     {
         public static void Decompile()
         {
-            var fMaterials = new Win32BinaryFileReader(Path.Combine(Common.InputPath, "core_physics_materials.brf"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "resource_physics_materials.py"));
+            var fMaterials = new BinaryFileReader(Path.Combine(Common.InputPath, "core_physics_materials.brf"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "resource_physics_materials.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.PhysicsMaterials);
 

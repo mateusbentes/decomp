@@ -10,7 +10,7 @@ namespace Decomp.Core
         {
             if (!File.Exists(Path.Combine(Common.InputPath, "strings.txt"))) return Array.Empty<string>();
 
-            var fId = new Win32FileReader(Path.Combine(Common.InputPath, "strings.txt"));
+            var fId = new FileReader(Path.Combine(Common.InputPath, "strings.txt"));
             fId.ReadLine();
             int n = Convert.ToInt32(fId.ReadLine(), CultureInfo.GetCultureInfo("en-US"));
             var aStrings = new string[n];
@@ -28,7 +28,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fStrings = new Text(Path.Combine(Common.InputPath, "strings.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_strings.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_strings.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Strings);
             fStrings.GetString();

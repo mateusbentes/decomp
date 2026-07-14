@@ -97,7 +97,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fMenus = new Text(Path.Combine(Common.InputPath, "menus.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_game_menus.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_game_menus.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Menus);
             fMenus.GetString();

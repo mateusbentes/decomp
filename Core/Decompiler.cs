@@ -38,7 +38,7 @@ namespace Decomp.Core
             var operators = version.GetOperators().ToDictionary(op => op.Code, op => op);
 
             using Text text = new Text(inputFile);
-            using FileWriter output = string.IsNullOrEmpty(outputFile)
+            using FileWriter output = outputFile == null
                 ? new FileWriter(Console.Out)
                 : new FileWriter(outputFile);
 

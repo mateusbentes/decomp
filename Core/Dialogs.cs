@@ -7,12 +7,12 @@ namespace Decomp.Core
 {
     public static class Dialogs
     {
-        public static string[] Initialize() => File.Exists(Path.Combine(Common.InputPath, "dialog_states.txt")) ? Win32FileReader.ReadAllLines(Path.Combine(Common.InputPath, "dialog_states.txt")) : Array.Empty<string>();
+        public static string[] Initialize() => File.Exists(Path.Combine(Common.InputPath, "dialog_states.txt")) ? FileReader.ReadAllLines(Path.Combine(Common.InputPath, "dialog_states.txt")) : Array.Empty<string>();
 
         public static void Decompile()
         {
             var fDialogs = new Text(Path.Combine(Common.InputPath, "conversation.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_dialogs.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_dialogs.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Dialogs);
             fDialogs.GetString();

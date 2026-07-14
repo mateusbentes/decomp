@@ -35,7 +35,7 @@ namespace Decomp.Core.Vanilla
         public static void Decompile()
         {
             var fActions = new Text(Path.Combine(Common.InputPath, "actions.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_animations.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_animations.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Animations);
             var iActions = fActions.GetInt();

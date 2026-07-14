@@ -94,7 +94,7 @@ namespace Decomp.Core.Caribbean
         public static void Decompile()
         {
             var fSkins = new Text(Path.Combine(Common.InputPath, "skins.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_skins.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_skins.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Skins);
             fSkins.GetString();

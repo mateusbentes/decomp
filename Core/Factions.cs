@@ -35,7 +35,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fFactions = new Text(Path.Combine(Common.InputPath, "factions.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_factions.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_factions.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Factions);
             fFactions.GetString();

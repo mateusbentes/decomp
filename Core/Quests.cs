@@ -10,7 +10,7 @@ namespace Decomp.Core
         {
             if (!File.Exists(Path.Combine(Common.InputPath, "quests.txt"))) return Array.Empty<string>();
 
-            var fId = new Win32FileReader(Path.Combine(Common.InputPath, "quests.txt"));
+            var fId = new FileReader(Path.Combine(Common.InputPath, "quests.txt"));
             fId.ReadLine();
             int n = Convert.ToInt32(fId.ReadLine(), CultureInfo.GetCultureInfo("en-US"));
             var aQuests = new string[n];
@@ -36,7 +36,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fQuests = new Text(Path.Combine(Common.InputPath, "quests.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_quests.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_quests.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Quests);
             fQuests.GetString();

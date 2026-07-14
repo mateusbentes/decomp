@@ -14,7 +14,7 @@ namespace Decomp.Core
         {
             if (!File.Exists(Path.Combine(Common.InputPath, "party_templates.txt"))) return Array.Empty<string>();
 
-            var fId = new Win32FileReader(Path.Combine(Common.InputPath, "party_templates.txt"));
+            var fId = new FileReader(Path.Combine(Common.InputPath, "party_templates.txt"));
             fId.ReadLine();
             var n = Convert.ToInt32(fId.ReadLine(), CultureInfo.GetCultureInfo("en-US"));
             var aPartyTemplates = new string[n];
@@ -93,7 +93,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fTemplates = new Text(Path.Combine(Common.InputPath, "party_templates.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, @"module_party_templates.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, @"module_party_templates.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.PartyTemplates);
             fTemplates.GetString();

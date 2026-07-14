@@ -8,11 +8,12 @@ namespace Decomp.Core
     public class Text : IDisposable
     {
         private readonly StreamReader _reader;
-        private readonly StringBuilder _sb = new StringBuilder();
+        private readonly StringBuilder _sb = new();
         private bool _disposed;
 
         public Text(string fileName)
         {
+            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
             _reader = new StreamReader(fileName, Encoding.UTF8);
         }
 
@@ -65,7 +66,7 @@ namespace Decomp.Core
 
         public static string GetFirstStringFromFile(string sFileName)
         {
-            if (!File.Exists(sFileName)) return "";
+            if (!File.Exists(sFileName)) return string.Empty;
 
             using var f = new StreamReader(sFileName);
             return f.ReadLine() ?? string.Empty;

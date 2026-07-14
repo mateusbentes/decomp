@@ -10,7 +10,7 @@ namespace Decomp.Core
         {
             if (!File.Exists(Path.Combine(Common.InputPath, "tableau_materials.txt"))) return Array.Empty<string>();
 
-            var fId = new Win32FileReader(Path.Combine(Common.InputPath, "tableau_materials.txt"));
+            var fId = new FileReader(Path.Combine(Common.InputPath, "tableau_materials.txt"));
             int n = Convert.ToInt32(fId.ReadLine(), CultureInfo.GetCultureInfo("en-US"));
             var aTableauMateriales = new string[n];
             for (int i = 0; i < n; i++)
@@ -26,7 +26,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fTableaus = new Text(Path.Combine(Common.InputPath, "tableau_materials.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_tableau_materials.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_tableau_materials.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.TableauMaterials);
             int iCount = fTableaus.GetInt();
