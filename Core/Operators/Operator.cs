@@ -73,13 +73,13 @@ namespace Decomp.Core.Operators
 #pragma warning disable CA1716 // Identifiers should not match keywords
     public class Operator
     {
-        public string Value { get; set; }
+        public string Value { get; set; } = string.Empty;
         public int Code { get; set; }
-        public IReadOnlyDictionary<int, Parameter> Parameters { get; set; }
+        public IReadOnlyDictionary<int, Parameter> Parameters { get; set; } = new Dictionary<int, Parameter>();
 
         private void Initialize(string value, int code)
         {
-            Value = value;
+            Value = value ?? string.Empty;
             Code = code;
             Parameters = new Dictionary<int, Parameter>(16);
         }
@@ -100,6 +100,8 @@ namespace Decomp.Core.Operators
 
         public string GetParameter(int index, string s)
         {
+            if (s == null) return string.Empty;
+
             var b = ulong.TryParse(s, out var t);
             if (!b) return s;
 
@@ -164,7 +166,11 @@ namespace Decomp.Core.Operators
             };
         }
 
-        public static IEnumerable<Operator> GetCollection(IEnumerable<IGameVersion> versions) => versions.SelectMany(x => x.GetOperators());
+        public static IEnumerable<Operator> GetCollection(IEnumerable<IGameVersion> versions)
+        {
+            if (versions == null) return Enumerable.Empty<Operator>();
+            return versions.SelectMany(x => x.GetOperators());
+        }
 
         public static IEnumerable<Operator> GetCollection(Mode m) => m switch
         {

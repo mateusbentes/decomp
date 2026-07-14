@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -33,7 +33,7 @@ namespace Decomp.Core
             uint* lpNumberOfBytesWritten,
             IntPtr lpOverlapped
         );
-        
+
         [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         private static extern unsafe int WideCharToMultiByte(
             uint uCodePage,
@@ -60,16 +60,16 @@ namespace Decomp.Core
         private readonly string _fileName;
 
         private static readonly CultureInfo FormatProvider = CultureInfo.GetCultureInfo("en-US");
-        
+
         public Win32FileWriter(string s)
         {
-            _fileName = s;
+            _fileName = s ?? throw new ArgumentNullException(nameof(s));
             _sb = new StringBuilder(2048);
         }
 
         public void Write(char value) => _sb.Append(value);
-        public void Write(char[] buffer) => _sb.Append(buffer);
-        public void Write(string value) => _sb.Append(value);
+        public void Write(char[] buffer) => _sb.Append(buffer ?? Array.Empty<char>());
+        public void Write(string value) => _sb.Append(value ?? string.Empty);
         public void Write(bool value) => Write(value ? "True" : "False");
         public void Write(int value) => Write(value.ToString(FormatProvider));
         public void Write(uint value) => Write(value.ToString(FormatProvider));
@@ -83,10 +83,10 @@ namespace Decomp.Core
         {
             if (value == null) return;
             var f = value as IFormattable;
-            Write(f?.ToString(null, FormatProvider) ?? value.ToString());
+            Write(f?.ToString(null, FormatProvider) ?? value.ToString() ?? string.Empty);
         }
 
-        public void Write(string format, params object[] arg) => Write(arg == null ? format : String.Format(FormatProvider, format, arg));
+        public void Write(string format, params object[] arg) => Write(arg == null ? format ?? string.Empty : String.Format(FormatProvider, format ?? string.Empty, arg));
 
         public void WriteLine()
         {
@@ -99,7 +99,7 @@ namespace Decomp.Core
             Write(value);
             WriteLine();
         }
-        
+
         public void WriteLine(char[] buffer)
         {
             Write(buffer);
@@ -111,13 +111,13 @@ namespace Decomp.Core
             Write(value);
             WriteLine();
         }
-        
+
         public void WriteLine(int value)
         {
             Write(value);
             WriteLine();
         }
-        
+
         public void WriteLine(uint value)
         {
             Write(value);
@@ -129,13 +129,13 @@ namespace Decomp.Core
             Write(value);
             WriteLine();
         }
-        
+
         public void WriteLine(ulong value)
         {
             Write(value);
             WriteLine();
         }
-        
+
         public void WriteLine(float value)
         {
             Write(value);
@@ -166,15 +166,16 @@ namespace Decomp.Core
             WriteLine();
         }
 
-        public void WriteLine(string format, params object[] arg) => WriteLine(arg == null ? format : String.Format(FormatProvider, format, arg));
+        public void WriteLine(string format, params object[] arg) => WriteLine(arg == null ? format ?? string.Empty : String.Format(FormatProvider, format ?? string.Empty, arg));
 
         public void Close() => WriteContentIntoFile();
-        
+
         private void WriteContentIntoFile() => WriteAllText(_fileName, _sb.ToString());
 
         public static unsafe void WriteAllText(string fileName, string data)
         {
-            if (data == null) data = "";
+            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
+            if (data == null) data = string.Empty;
 
             var bufferSize = WideCharToMultiByte(CP_UTF8, 0, data, data.Length, null, 0, null, null);
             var buffer = new byte[bufferSize];
@@ -185,7 +186,7 @@ namespace Decomp.Core
 
                 var pHandle = CreateFile(@"\\?\" + fileName, GENERIC_WRITE, 0, IntPtr.Zero, CREATE_ALWAYS, 0, IntPtr.Zero);
 
-                if (/*pHandle == IntPtr.Zero || */ pHandle == INVALID_HANDLE_VALUE)
+                if (pHandle == INVALID_HANDLE_VALUE)
                 {
                     var errorCode = Marshal.GetLastWin32Error();
                     switch (errorCode)

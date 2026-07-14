@@ -15,17 +15,18 @@ namespace Decomp.Core
 
         public FileWriter(string path)
         {
+            if (path == null) throw new ArgumentNullException(nameof(path));
             _writer = new StreamWriter(path, false, Encoding.UTF8);
         }
 
         public FileWriter(Stream stream)
         {
-            _writer = new StreamWriter(stream, Encoding.UTF8);
+            _writer = stream != null ? new StreamWriter(stream, Encoding.UTF8) : throw new ArgumentNullException(nameof(stream));
         }
 
         public void Write(char value) => _sb.Append(value);
-        public void Write(char[] buffer) => _sb.Append(buffer);
-        public void Write(string value) => _sb.Append(value);
+        public void Write(char[] buffer) => _sb.Append(buffer ?? Array.Empty<char>());
+        public void Write(string value) => _sb.Append(value ?? string.Empty);
         public void Write(bool value) => Write(value ? "True" : "False");
         public void Write(int value) => Write(value.ToString(FormatProvider));
         public void Write(uint value) => Write(value.ToString(FormatProvider));
@@ -38,10 +39,10 @@ namespace Decomp.Core
         public void Write(object value)
         {
             if (value == null) return;
-            Write(value.ToString());
+            Write(value.ToString() ?? string.Empty);
         }
 
-        public void Write(string format, params object[] arg) => Write(arg == null ? format : string.Format(FormatProvider, format, arg));
+        public void Write(string format, params object[] arg) => Write(arg == null ? format ?? string.Empty : string.Format(FormatProvider, format ?? string.Empty, arg));
 
         public void WriteLine()
         {
