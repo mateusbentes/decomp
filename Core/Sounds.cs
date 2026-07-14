@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -71,7 +71,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fSounds = new Text(Path.Combine(Common.InputPath, "sounds.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_sounds.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_sounds.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Sounds);
             fSounds.GetString();
