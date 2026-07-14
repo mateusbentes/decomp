@@ -13,8 +13,10 @@ namespace DecompilerCLI
                 Console.WriteLine("Usage: DecompilerCLI <input_file_or_folder> [output_file_or_folder] [game_version]");
                 Console.WriteLine("Supported game versions:");
                 Console.WriteLine("  VanillaClassic    - Mount & Blade Classic");
-                Console.WriteLine("  VanillaWarband    - Mount & Blade: Warband");
-                Console.WriteLine("  VanillaWFS        - Mount & Blade: With Fire & Sword");
+                Console.WriteLine("  VanillaWarband    - Mount & Blade: Warband (1.153)");
+                Console.WriteLine("  Warband1153       - Mount & Blade: Warband (1.153)");
+                Console.WriteLine("  Warband1171       - Mount & Blade: Warband (1.171)");
+                Console.WriteLine("  VanillaWFS        - Mount & Blade: With Fire & Sword (uses Warband 1153 operators)");
                 Console.WriteLine("  WSE320            - Warband Script Enhancer 3.2.0");
                 Console.WriteLine("  WSE450            - Warband Script Enhancer 4.5.0");
                 Console.WriteLine("  Caribbean         - Mount & Blade: Caribbean");
@@ -58,7 +60,7 @@ namespace DecompilerCLI
                         }
                         catch (PlatformNotSupportedException ex)
                         {
-                            Console.WriteLine($"Warning: {ex.Message} (arquivo: {file})");
+                            Console.WriteLine($"Warning: {ex.Message} (file: {file})");
                         }
                         catch (Exception ex)
                         {
