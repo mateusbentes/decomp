@@ -39,7 +39,7 @@ namespace Decomp.Core
             {
                 output = string.IsNullOrEmpty(outputFile)
                     ? new Win32FileWriter("CON")
-                    : new Win32FileWriter(outputFile);
+                    : new Win32FileWriter(outputFile!);
 
                 while (text.Peek() != -1)
                 {
