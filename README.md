@@ -18,13 +18,11 @@ This is a modernized, headless fork of the original WPF decompiler, rewritten to
 
 Run the compiled executable pointing to your compiled module folder and your desired output directory:
 
-```bash
-./Decomp <input_directory> <output_directory> [game_version]```
+`./Decomp <input_directory> <output_directory> [game_version]`
 
 Example:
 
-```bash
-./Decomp ~/.steam/steam/steamapps/common/Mount\&\Blade\ Warband/Modules/Native ./src_python VanillaWarband```
+`./Decomp ~/.steam/steam/steamapps/common/Mount\&\Blade\ Warband/Modules/Native ./src_python VanillaWarband`
 
 Supported Game/Engine Versions:
 
