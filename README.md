@@ -36,6 +36,37 @@ Supported Game/Engine Versions:
 
     Caribbean (Caribbean! / Blood & Gold: Caribbean!)
 
+🛠️ Compilation & Publishing
+1. Everyday Development Builds
+
+To test individual changes during development without cross-compiling, use the target-specific commands:
+Bash
+
+# To update the core engine binary (Required if you change core logic)
+`dotnet build Decomp.csproj`
+
+# To build the desktop GUI application
+`dotnet build DecompilerGUI/DecompilerGUI.csproj`
+
+2. Cross-Platform Publishing (Production Releases)
+
+To build production-ready, self-contained single-file executables for all platforms, ensure the core engine is built, then trigger the publish commands:
+
+Windows
+
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+
+macOS
+
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+
+Linux
+
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+
 ⚠️ IMPORTANT!!!
 
 This program is published solely for educational purposes and personal mod development.
