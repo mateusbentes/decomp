@@ -11,6 +11,10 @@ obj/
 *.userosscache
 *.sln.docstates
 
+# NuGet packages
+packages.config
+packages/
+
 # Tooling & AI assistant caches
 .refact
 .aider*
