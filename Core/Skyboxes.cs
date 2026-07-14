@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using DWORD = System.UInt32;
@@ -14,7 +14,7 @@ namespace Decomp.Core
             DWORD dwShadow = dwFlag & 0xF0000000;
 
             var sbFlag = new StringBuilder(32);
-            
+
             switch (dwTime)
             {
                 case 3:
@@ -36,7 +36,7 @@ namespace Decomp.Core
             switch (dwShadow)
             {
                 case 0x10000000:
-                    sbFlag.Append("sf_no_shadows|"); 
+                    sbFlag.Append("sf_no_shadows|");
                     break;
                 case 0x20000000:
                     sbFlag.Append("sf_HDR|");
@@ -54,7 +54,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fSkyboxes = new Text(Path.Combine(Common.InputPath, "skyboxes.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_skyboxes.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_skyboxes.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Skyboxes);
 
