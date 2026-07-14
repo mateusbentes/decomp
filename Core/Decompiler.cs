@@ -9,19 +9,23 @@ namespace Decomp.Core
 {
     public static class Decompiler
     {
-        public static void Decompile(string inputFile, string? outputFile = null, string? gameVersion = "VanillaWarband")
+        public static void Decompile(string inputFile, string? outputFile = null, string? gameVersion = null)
         {
             if (!File.Exists(inputFile))
             {
                 throw new FileNotFoundException("Arquivo de entrada não encontrado.", inputFile);
             }
 
-            if (gameVersion?.Equals("VanillaWFS", StringComparison.OrdinalIgnoreCase) == true)
+            if (string.IsNullOrEmpty(gameVersion))
+            {
+                gameVersion = "VanillaWarband";
+            }
+            else if (gameVersion.Equals("VanillaWFS", StringComparison.OrdinalIgnoreCase))
             {
                 gameVersion = "VanillaWarband";
             }
 
-            IGameVersion version = gameVersion?.ToLowerInvariant() switch
+            IGameVersion version = gameVersion.ToLowerInvariant() switch
             {
                 "vanillaclassic" => new VanillaVersion(),
                 "vanillawarband" => new Warband1153Version(),
@@ -36,7 +40,7 @@ namespace Decomp.Core
             using Text text = new Text(inputFile);
             using FileWriter output = string.IsNullOrEmpty(outputFile)
                 ? new FileWriter(Console.OpenStandardOutput())
-                : new FileWriter(outputFile);
+                : new FileWriter(outputFile!);
 
             while (text.Peek() != -1)
             {
