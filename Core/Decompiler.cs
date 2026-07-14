@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using Decomp.Core.Operators;
@@ -35,7 +33,18 @@ namespace Decomp.Core
             };
 
             string extension = Path.GetExtension(inputFile).ToLowerInvariant();
-            if (extension is ".fx" or ".vsh" or ".psh" or ".fxc" or ".glsl")
+
+            // .vsh and .psh are plain-text HLSL assembly shaders used by the M&B engine.
+            // They do not need decompilation — just copy them as-is to the output.
+            if (extension is ".vsh" or ".psh")
+            {
+                string outputPath = outputFile ?? Path.ChangeExtension(inputFile, ".txt");
+                File.Copy(inputFile, outputPath, overwrite: true);
+                return;
+            }
+
+            // .fxc and .glsl are compiled/binary shaders that require actual decompilation.
+            if (extension is ".fxc" or ".glsl")
             {
                 string outputPath = outputFile ?? Path.ChangeExtension(inputFile, ".txt");
                 ShaderDecompiler.Decompile(inputFile, outputPath, gameVersion);
