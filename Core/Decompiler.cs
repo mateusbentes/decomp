@@ -39,8 +39,8 @@ namespace Decomp.Core
 
             using Text text = new Text(inputFile);
             using FileWriter output = string.IsNullOrEmpty(outputFile)
-                ? new FileWriter(Console.OpenStandardOutput())
-                : new FileWriter(outputFile ?? throw new ArgumentNullException(nameof(outputFile)));
+                ? new FileWriter(Console.Out)
+                : new FileWriter(outputFile);
 
             while (text.Peek() != -1)
             {

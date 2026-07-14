@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -69,10 +69,9 @@ namespace Decomp.Core.Shaders
         [DllImport("User32.dll", EntryPoint = "UnregisterClassW", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool UnregisterClass(
-            string lpClassName, 
+            string lpClassName,
             IntPtr hInstance
         );
-
 
         [DllImport("Kernel32.dll", EntryPoint = "GetModuleHandleW", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern IntPtr GetModuleHandle(
@@ -139,31 +138,9 @@ namespace Decomp.Core.Shaders
         private struct IDirect3D9
         {
             public IntPtr* lpVtbl;
-            /*
-            0 STDMETHOD(QueryInterface)(THIS_ REFIID riid, void** ppvObj) PURE;
-            1 STDMETHOD_(ULONG,AddRef)(THIS) PURE;
-            2 STDMETHOD_(ULONG,Release)(THIS) PURE;
-
-            // IDirect3D9 methods
-            3 STDMETHOD(RegisterSoftwareDevice)(THIS_ void* pInitializeFunction) PURE;
-            4 STDMETHOD_(UINT, GetAdapterCount)(THIS) PURE;
-            5 STDMETHOD(GetAdapterIdentifier)(THIS_ UINT Adapter,DWORD Flags,D3DADAPTER_IDENTIFIER9* pIdentifier) PURE;
-            6 STDMETHOD_(UINT, GetAdapterModeCount)(THIS_ UINT Adapter,D3DFORMAT Format) PURE;
-            7 STDMETHOD(EnumAdapterModes)(THIS_ UINT Adapter,D3DFORMAT Format,UINT Mode,D3DDISPLAYMODE* pMode) PURE;
-            8 STDMETHOD(GetAdapterDisplayMode)(THIS_ UINT Adapter,D3DDISPLAYMODE* pMode) PURE;
-            9 STDMETHOD(CheckDeviceType)(THIS_ UINT Adapter,D3DDEVTYPE DevType,D3DFORMAT AdapterFormat,D3DFORMAT BackBufferFormat,BOOL bWindowed) PURE;
-            0 STDMETHOD(CheckDeviceFormat)(THIS_ UINT Adapter,D3DDEVTYPE DeviceType,D3DFORMAT AdapterFormat,DWORD Usage,D3DRESOURCETYPE RType,D3DFORMAT CheckFormat) PURE;
-            1 STDMETHOD(CheckDeviceMultiSampleType)(THIS_ UINT Adapter,D3DDEVTYPE DeviceType,D3DFORMAT SurfaceFormat,BOOL Windowed,D3DMULTISAMPLE_TYPE MultiSampleType,DWORD* pQualityLevels) PURE;
-            2 STDMETHOD(CheckDepthStencilMatch)(THIS_ UINT Adapter,D3DDEVTYPE DeviceType,D3DFORMAT AdapterFormat,D3DFORMAT RenderTargetFormat,D3DFORMAT DepthStencilFormat) PURE;
-            3 STDMETHOD(CheckDeviceFormatConversion)(THIS_ UINT Adapter,D3DDEVTYPE DeviceType,D3DFORMAT SourceFormat,D3DFORMAT TargetFormat) PURE;
-            4 STDMETHOD(GetDeviceCaps)(THIS_ UINT Adapter,D3DDEVTYPE DeviceType,D3DCAPS9* pCaps) PURE;
-            5 STDMETHOD_(HMONITOR, GetAdapterMonitor)(THIS_ UINT Adapter) PURE;
-            6 STDMETHOD(CreateDevice)(THIS_ UINT Adapter,D3DDEVTYPE DeviceType,HWND hFocusWindow,DWORD BehaviorFlags,D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface) PURE;
-            */
         }
 
         private delegate int DelegateIDirect3D9_CreateDevice(IDirect3D9* This, uint Adapter, uint DeviceType, IntPtr hFocusWindow, uint BehaviorFlags, IntPtr pPresentationParameters, IntPtr ppReturnedDeviceInterface);
-        // ReSharper disable once UnusedMethodReturnValue.Local
         private static int IDirect3D9_CreateDevice(IDirect3D9* p, uint Adapter, uint DeviceType, IntPtr hFocusWindow, uint BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
         {
             var lpIDirect3D9_CreateDevice = (DelegateIDirect3D9_CreateDevice)Marshal.GetDelegateForFunctionPointer(p->lpVtbl[16],
@@ -187,15 +164,6 @@ namespace Decomp.Core.Shaders
         private struct ID3DXBuffer
         {
             public IntPtr* lpVtbl;
-            /*    
-            // IUnknown
-            STDMETHOD(QueryInterface)(THIS_ REFIID iid, LPVOID *ppv) PURE;
-            STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-            STDMETHOD_(ULONG, Release)(THIS) PURE;
-
-            // ID3DXBuffer
-            STDMETHOD_(LPVOID, GetBufferPointer)(THIS) PURE;
-            STDMETHOD_(DWORD, GetBufferSize)(THIS) PURE;*/
         }
 
         private delegate IntPtr DelegateID3DXBuffer_GetBufferPointer(ID3DXBuffer* This);
@@ -247,7 +215,7 @@ namespace Decomp.Core.Shaders
         private static IDirect3D9* g_D3D = null;
         private static IDirect3DDevice9* g_D3DDevice = null;
         private static IntPtr g_hWnd = IntPtr.Zero;
-        private static WndProc _wndProc;
+        private static WndProc _wndProc = null!;
 
         private const string g_szClassName = "shadersdecomp548hxs09qxw";
         // ReSharper restore FieldCanBeMadeReadOnly.Local
@@ -339,6 +307,5 @@ namespace Decomp.Core.Shaders
             DestroyWindow(g_hWnd);
             UnregisterClass(g_szClassName, GetModuleHandle(IntPtr.Zero));
         }
-
     }
 }
