@@ -9,8 +9,9 @@ namespace DecompilerCLI
         {
             if (args.Length == 0)
             {
-                Console.WriteLine("Usage: DecompilerCLI <input_file> [output_file] [game_version]");
-                Console.WriteLine("Game versions:");
+                Console.WriteLine("E aí, beleza? Precisa descompilar um arquivo?");
+                Console.WriteLine("Modo de usar: DecompilerCLI <arquivo_entrada> [arquivo_saida] [versão_jogo]");
+                Console.WriteLine("Versões de jogo suportadas:");
                 Console.WriteLine("  VanillaClassic    - Mount & Blade Classic");
                 Console.WriteLine("  VanillaWarband    - Mount & Blade: Warband");
                 Console.WriteLine("  VanillaWFS        - Mount & Blade: With Fire & Sword");
@@ -27,12 +28,12 @@ namespace DecompilerCLI
             try
             {
                 Decompiler.Decompile(inputFile, outputFile, gameVersion);
-                Console.WriteLine("Decompilation completed successfully.");
+                Console.WriteLine("Decompilação concluída com sucesso!");
                 return 0;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during decompilation: {ex.Message}");
+                Console.WriteLine($"Erro durante a decompilação: {ex.Message}");
                 return 1;
             }
         }
