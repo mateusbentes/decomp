@@ -14,7 +14,7 @@ namespace DecompilerGUI.Services
 
         public LocalizationService()
         {
-            _resourceManager = new ResourceManager("DecompilerGUI.Languages.Strings", typeof(LocalizationService).Assembly);
+            _resourceManager = new ResourceManager("decomp.Languages.Strings", typeof(LocalizationService).Assembly);
 
             // Set default culture based on OS
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

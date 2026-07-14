@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Декомпилятор Модулей Warband</value>
+  </data>
+  <data name="InputSectionTitle" xml:space="preserve">
+    <value>Входной файл/папка</value>
+  </data>
+  <data name="InputPlaceholder" xml:space="preserve">
+    <value>Выберите входной файл или папку...</value>
+  </data>
+  <data name="OutputSectionTitle" xml:space="preserve">
+    <value>Папка для результата</value>
+  </data>
+  <data name="OutputPlaceholder" xml:space="preserve">
+    <value>Выберите папку для результата...</value>
+  </data>
+  <data name="EngineVersionTitle" xml:space="preserve">
+    <value>Версия игрового движка</value>
+  </data>
+  <data name="DecompileButton" xml:space="preserve">
+    <value>Декомпилировать</value>
+  </data>
+  <data name="BrowseButton" xml:space="preserve">
+    <value>Обзор...</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>Готов к декомпиляции</value>
+  </data>
+  <data name="StatusDecompiling" xml:space="preserve">
+    <value>Декомпиляция...</value>
+  </data>
+  <data name="StatusCompleted" xml:space="preserve">
+    <value>Декомпиляция успешно завершена!</value>
+  </data>
+  <data name="StatusError" xml:space="preserve">
+    <value>Ошибка декомпиляции!</value>
+  </data>
+  <data name="ErrorNoInput" xml:space="preserve">
+    <value>Пожалуйста, выберите входной файл или папку.</value>
+  </data>
+  <data name="ErrorNoOutput" xml:space="preserve">
+    <value>Пожалуйста, выберите папку для результата.</value>
+  </data>
+  <data name="ErrorCreateOutput" xml:space="preserve">
+    <value>Не удалось создать папку для результата</value>
+  </data>
+  <data name="SelectedInput" xml:space="preserve">
+    <value>Выбран входной файл</value>
+  </data>
+  <data name="OutputFolder" xml:space="preserve">
+    <value>Папка для результата</value>
+  </data>
+  <data name="FailedToProcess" xml:space="preserve">
+    <value>Не удалось обработать</value>
+  </data>
+</root>
