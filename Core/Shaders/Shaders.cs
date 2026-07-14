@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace Decomp.Core.Shaders
@@ -36,9 +37,15 @@ namespace Decomp.Core.Shaders
 
         public static void DecompileFxc(string inputFile, string outputFile)
         {
-            throw new PlatformNotSupportedException(
-                "Direct3D .fxc decompilation is no longer supported in this class. " +
-                "Use ShaderDecompiler.Decompile() for cross-platform shader decompilation.");
+            if (!IsWindowsPlatform)
+            {
+                throw new PlatformNotSupportedException(
+                    "Direct3D .fxc decompilation is only supported on Windows.");
+            }
+
+            var shaderBytecode = File.ReadAllBytes(inputFile);
+            var disassembledCode = DisassembleFxcWithD3DDisassemble(shaderBytecode);
+            File.WriteAllText(outputFile, disassembledCode);
         }
 
         internal static string DisassembleFxcWithD3DDisassemble(byte[] shaderBytecode)
@@ -67,8 +74,9 @@ namespace Decomp.Core.Shaders
 
                 IntPtr bufferPointer = blob.GetBufferPointer();
                 int bufferSize = blob.GetBufferSize();
-                string disassembledCode = Marshal.PtrToStringAnsi(bufferPointer, bufferSize);
-                return disassembledCode ?? string.Empty;
+                string disassembledCode = Marshal.PtrToStringAnsi(bufferPointer, bufferSize) ?? string.Empty;
+
+                return disassembledCode;
             }
             catch (DllNotFoundException ex)
             {
@@ -82,7 +90,7 @@ namespace Decomp.Core.Shaders
             }
             finally
             {
-                if (blob != null)
+                if (blob != null && IsWindowsPlatform)
                 {
                     Marshal.ReleaseComObject(blob);
                 }
