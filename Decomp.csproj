@@ -21,49 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Application.xaml.cs" />
-    <Compile Include="Core\Common.cs" />
-    <Compile Include="Core\Decompiler.cs" />
-    <Compile Include="Core\Operators\Caribbean.cs" />
-    <Compile Include="Core\Operators\Operator.cs" />
-    <Compile Include="Core\Operators\Parser\Parser.cpp" />
-    <Compile Include="Core\Operators\Vanilla.cs" />
-    <Compile Include="Core\Operators\Warband1153.cs" />
-    <Compile Include="Core\Operators\Warband1171.cs" />
-    <Compile Include="Core\Operators\WarbandScriptEnhancer320.cs" />
-    <Compile Include="Core\Operators\WarbandScriptEnhancer450.cs" />
-    <Compile Include="Core\Text.cs" />
-    <Compile Include="Core\Trie.cs" />
-    <Compile Include="Core\Troops.cs" />
-    <Compile Include="Core\Vanilla\Animations.cs" />
-    <Compile Include="Core\Vanilla\Items.cs" />
-    <Compile Include="Core\Vanilla\Troops.cs" />
-    <Compile Include="Core\Win32BinaryFileReader.cs" />
-    <Compile Include="Core\Win32FileReader.cs" />
-    <Compile Include="Core\Win32FileWriter.cs" />
-    <Compile Include="Decomp.Core\Decompiler.cs" />
-    <Compile Include="Decomp.Core\Operators\Caribbean.cs" />
-    <Compile Include="Decomp.Core\Operators\Operator.cs" />
-    <Compile Include="Decomp.Core\Operators\VanillaClassic.cs" />
-    <Compile Include="Decomp.Core\Operators\VanillaWarband.cs" />
-    <Compile Include="Decomp.Core\Operators\WarbandScriptEnhancer320.cs" />
-    <Compile Include="Decomp.Core\Operators\WarbandScriptEnhancer450.cs" />
-    <Compile Include="Windows\AboutWindow.xaml.cs" />
-    <Compile Include="Windows\AutoCompleteTextBox.xaml.cs" />
-    <Compile Include="Windows\ControlsMethods.cs" />
-    <Compile Include="Windows\ErrorWindow.xaml.cs" />
-    <Compile Include="Windows\HelpWindow.xaml.cs" />
-    <Compile Include="Windows\HtmlConverter\HtmlCssParser.cs" />
-    <Compile Include="Windows\HtmlConverter\HtmlLexicalAnalyzer.cs" />
-    <Compile Include="Windows\HtmlConverter\HtmlParser.cs" />
-    <Compile Include="Windows\HtmlConverter\HtmlSchema.cs" />
-    <Compile Include="Windows\HtmlConverter\HtmlToXamlConverter.cs" />
-    <Compile Include="Windows\OpenFileOrFolderDialog.cs" />
-    <Compile Include="Windows\Styles\VS2012WindowStyle.xaml.cs" />
-    <Compile Include="Windows\WindowCustomSystemMenu.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Application.xaml" />
     <Content Include="Windows\AboutWindow.xaml" />
     <Content Include="Windows\AutoCompleteTextBox.xaml" />
