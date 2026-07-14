@@ -32,50 +32,42 @@ namespace Decomp.Core
             };
 
             var operators = version.GetOperators().ToDictionary(op => op.Code, op => op);
-            Text text = new Text(inputFile);
 
-            Win32FileWriter? output = null;
-            try
+            using Text text = new Text(inputFile);
+            using FileWriter? output = string.IsNullOrEmpty(outputFile)
+                ? new FileWriter(Console.OpenStandardOutput())
+                : new FileWriter(outputFile);
+
+            while (text.Peek() != -1)
             {
-                output = string.IsNullOrEmpty(outputFile)
-                    ? new Win32FileWriter("CON")
-                    : new Win32FileWriter(outputFile!);
+                int iRecords = text.GetInt();
+                output.WriteLine("decl {0}", iRecords);
 
-                while (text.Peek() != -1)
+                for (int r = 0; r < iRecords; r++)
                 {
-                    int iRecords = text.GetInt();
-                    output.WriteLine("decl {0}", iRecords);
+                    int iCodeSize = text.GetInt();
+                    output.WriteLine("code {0}", iCodeSize);
 
-                    for (int r = 0; r < iRecords; r++)
+                    for (int i = 0; i < iCodeSize; i++)
                     {
-                        int iCodeSize = text.GetInt();
-                        output.WriteLine("code {0}", iCodeSize);
-
-                        for (int i = 0; i < iCodeSize; i++)
+                        int iOpCode = text.GetInt();
+                        if (!operators.TryGetValue(iOpCode, out var op))
                         {
-                            int iOpCode = text.GetInt();
-                            if (!operators.TryGetValue(iOpCode, out var op))
-                            {
-                                output.WriteLine("\tunknown_opcode_{0}", iOpCode);
-                                continue;
-                            }
-
-                            output.Write("\t{0}", op.Value);
-                            int iNumParams = op.Parameters.Count;
-
-                            for (int p = 0; p < iNumParams; p++)
-                            {
-                                int iParam = text.GetInt();
-                                output.Write(" {0}", op.GetParameter(p, iParam.ToString()));
-                            }
-                            output.WriteLine();
+                            output.WriteLine("\tunknown_opcode_{0}", iOpCode);
+                            continue;
                         }
+
+                        output.Write("\t{0}", op.Value);
+                        int iNumParams = op.Parameters.Count;
+
+                        for (int p = 0; p < iNumParams; p++)
+                        {
+                            int iParam = text.GetInt();
+                            output.Write(" {0}", op.GetParameter(p, iParam.ToString()));
+                        }
+                        output.WriteLine();
                     }
                 }
-            }
-            finally
-            {
-                output?.Close();
             }
         }
     }

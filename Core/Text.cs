@@ -1,72 +1,92 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
 
 namespace Decomp.Core
 {
-    public class Text : Win32FileReader
+    public class Text : IDisposable
     {
-        public static string GetFirstStringFromFile(string sFileName)
-        {
-            if (!File.Exists(sFileName)) return "";
+        private readonly StreamReader _reader;
+        private readonly StringBuilder _sb = new StringBuilder();
+        private bool _disposed;
 
-            var f = new StreamReader(sFileName);
-            var s = f.ReadLine();
-            f.Close();
-            return s;
+        public Text(string fileName)
+        {
+            _reader = new StreamReader(fileName, Encoding.UTF8);
         }
-        
-        public Text(string s) : base(s) { }
+
+        public int Peek() => _reader.Peek();
 
         public string GetWord()
         {
-            int i;
-            do
+            _sb.Clear();
+            while (Peek() != -1)
             {
-                i = Read();
-            }while (Char.IsWhiteSpace((char)i)); //pass spaces
-
-            var c = (char)i;
-            var sb = new StringBuilder();
-
-            do
-            {
-                sb.Append(c);
-                i = Peek();
-                if (i == -1)
-                    break;
-                c = (char)i;
+                char c = (char)_reader.Read();
                 if (char.IsWhiteSpace(c))
-                    break;
-                Read();
-            }while (true);
-
-            return sb.ToString();
+                {
+                    if (_sb.Length > 0) break;
+                    continue;
+                }
+                _sb.Append(c);
+            }
+            return _sb.ToString();
         }
 
         public long GetInt64()
         {
-            long.TryParse(GetWord(), out var x);
-            return x;
+            string s = GetWord();
+            return long.TryParse(s, out long result) ? result : 0;
         }
 
         public ulong GetUInt64()
         {
-            ulong.TryParse(GetWord(), out var x);
-            return x;
+            string s = GetWord();
+            return ulong.TryParse(s, out ulong result) ? result : 0;
         }
 
         public int GetInt() => (int)GetInt64();
         public uint GetUInt() => (uint)GetUInt64();
         public uint GetDWord() => (uint)GetUInt64();
-  
+
         public double GetDouble()
         {
-            Double.TryParse(GetWord(), NumberStyles.Any, CultureInfo.GetCultureInfo(1033), out var x);
-            return x;
+            string s = GetWord();
+            return double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out double result) ? result : 0.0;
         }
 
-        public string GetString() => ReadLine();
+        public string GetString() => _reader.ReadLine() ?? string.Empty;
+
+        public void Close()
+        {
+            _reader.Close();
+        }
+
+        public static string GetFirstStringFromFile(string sFileName)
+        {
+            if (!File.Exists(sFileName)) return "";
+
+            using var f = new StreamReader(sFileName);
+            return f.ReadLine() ?? string.Empty;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _reader.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }
