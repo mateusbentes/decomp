@@ -32,6 +32,7 @@ namespace Decomp.Core.Shaders
 
         /// <summary>
         /// Disassembles compiled HLSL code.
+        /// Only available on Windows via d3dcompiler_47.dll.
         /// </summary>
         [DllImport("d3dcompiler_47.dll", EntryPoint = "D3DDisassemble", CharSet = CharSet.Unicode)]
         private static extern int D3DDisassemble(
@@ -42,40 +43,38 @@ namespace Decomp.Core.Shaders
             out ID3DBlob ppDisassembly);
 
         /// <summary>
-        /// Decompiles a shader file (placeholder method).
-        /// </summary>
-        /// <param name="sFileName">Input shader file path</param>
-        /// <exception cref="PlatformNotSupportedException">Always thrown as this method is deprecated</exception>
-        public static void Decompile(string sFileName)
-        {
-            throw new PlatformNotSupportedException(
-                "Direct3D shader decompilation is no longer supported in this class. " +
-                "Use ShaderDecompiler.Decompile() for cross-platform shader decompilation.");
-        }
-
-        /// <summary>
         /// Decompiles a compiled .fxc shader file to text format.
+        /// On Windows, uses D3DDisassemble from d3dcompiler_47.dll.
+        /// On other platforms, delegates to ShaderDecompiler which uses dxbc-disassembler.
         /// </summary>
         /// <param name="inputFile">Path to the input .fxc file</param>
         /// <param name="outputFile">Path to save the disassembled output</param>
-        /// <exception cref="PlatformNotSupportedException">Thrown when not running on Windows</exception>
         public static void DecompileFxc(string inputFile, string outputFile)
         {
-            if (!IsWindowsPlatform)
+            if (IsWindowsPlatform)
             {
-                throw new PlatformNotSupportedException(
-                    "Direct3D .fxc decompilation is only supported on Windows.");
+                try
+                {
+                    var shaderBytecode = File.ReadAllBytes(inputFile);
+#pragma warning disable CA1416
+                    var disassembledCode = DisassembleFxcWithD3DDisassemble(shaderBytecode);
+#pragma warning restore CA1416
+                    File.WriteAllText(outputFile, disassembledCode);
+                    return;
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("d3dcompiler_47.dll"))
+                {
+                    // DLL not found — fall through to the cross-platform disassembler.
+                }
             }
 
-            var shaderBytecode = File.ReadAllBytes(inputFile);
-#pragma warning disable CA1416
-            var disassembledCode = DisassembleFxcWithD3DDisassemble(shaderBytecode);
-#pragma warning restore CA1416
-            File.WriteAllText(outputFile, disassembledCode);
+            // Cross-platform fallback: delegate to ShaderDecompiler which uses dxbc-disassembler.
+            ShaderDecompiler.Decompile(inputFile, outputFile);
         }
 
         /// <summary>
         /// Internal method to disassemble shader bytecode using D3DDisassemble.
+        /// Only supported on Windows.
         /// </summary>
         /// <param name="shaderBytecode">Compiled shader bytecode</param>
         /// <returns>Disassembled shader code as string</returns>
