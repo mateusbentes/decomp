@@ -1,6 +1,0 @@
-Ensure:
-1. The tool (`spirv-cross` or `dxbc-disassembler`) is installed.
-2. The tool is in your `PATH` or in the project's root directory.
-
-#### Error: "Platform not supported"
-If you see:
