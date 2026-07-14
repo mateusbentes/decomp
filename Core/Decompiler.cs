@@ -1,4 +1,4 @@
-﻿#define RELEASE
+#define RELEASE
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Decomp.Core.Operators;
-using Decomp.Windows;
 
 namespace Decomp.Core
 {
@@ -22,11 +21,15 @@ namespace Decomp.Core
             return Path.GetDirectoryName(message.Substring(beginPos + 1, endPos - beginPos - 1));
         }
 
-        public static MainWindow Window { get; set; }
-
-        private static string Status
+        private static string _status = string.Empty;
+        public static string Status
         {
-            set => Window.StatusTextBlock.SetText(value);
+            get => _status;
+            set
+            {
+                _status = value;
+                Console.WriteLine(value);
+            }
         }
 
         private static Thread _workThread = new Thread(Decompile);
@@ -47,17 +50,15 @@ namespace Decomp.Core
             Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo(1033);
 
             var sw = Stopwatch.StartNew();
-            Window.Print(Application.GetResource("LocalizationInitialization") + " ");
+            Console.WriteLine(Application.GetResource("LocalizationInitialization") + " ");
 
-            //Window.DecompileButton.SetContent("Decompile");
             Status = "";
 
             InitializePath(out var isSingleFile);
 
             if (!File.Exists(Common.InputPath) && !Directory.Exists(Common.InputPath))
             {
-                Window.Print("\n" + Application.GetResource("LocalizationPleasePath"));
-                Window.DecompileButton.SetContent(Application.GetResource("LocalizationDecompile"));
+                Console.WriteLine("\n" + Application.GetResource("LocalizationPleasePath"));
                 Status = "";
                 return;
             }
@@ -70,14 +71,11 @@ namespace Decomp.Core
                 }
                 catch
                 {
-                    Window.Print("\n" + Application.GetResource("LocalizationPleaseOutput"));
-                    Window.DecompileButton.SetContent(Application.GetResource("LocalizationDecompile"));
+                    Console.WriteLine("\n" + Application.GetResource("LocalizationPleaseOutput"));
                     Status = "";
                     return;
                 }
             }
-            
-            //InitializeModuleData(); //just for debug
 
             try
             {
@@ -85,7 +83,7 @@ namespace Decomp.Core
                 {
                     InitializeOpCodes();
                     InitializeModuleData();
-                    Common.NeedId = Window.GenerateIdFilesCheckBox.IsChecked();
+                    Common.NeedId = true; // Default to true, can be changed if needed
                 }
                 else
                 {
@@ -95,37 +93,32 @@ namespace Decomp.Core
             }
             catch (FileNotFoundException ex)
             {
-                //Window.Print("\nFile \"{0}\" not found\nDecompilation Aborted", ex.FileName);
-                Window.Print("\n" + Application.GetResource("LocalizationFileNotFound"), ex.FileName);
-                Window.DecompileButton.SetContent(Application.GetResource("LocalizationDecompile"));
+                Console.WriteLine("\n" + Application.GetResource("LocalizationFileNotFound"), ex.FileName);
                 Status = "";
                 return;
             }
             catch (DirectoryNotFoundException ex)
             {
-                Window.Print("\n" + Application.GetResource("LocalizationDirectoryNotFound"), ex.GetDirectory());
-                Window.DecompileButton.SetContent(Application.GetResource("LocalizationDecompile"));
+                Console.WriteLine("\n" + Application.GetResource("LocalizationDirectoryNotFound"), ex.GetDirectory());
                 Status = "";
                 return;
             }
             catch (ThreadAbortException)
             {
-                Window.Print(Application.GetResource("LocalizationDecompilationCanceled") + "\n");
-                Window.DecompileButton.SetContent(Application.GetResource("LocalizationDecompile"));
+                Console.WriteLine(Application.GetResource("LocalizationDecompilationCanceled") + "\n");
                 Status = "";
                 return;
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
-                Window.Print($"\n{Application.GetResource("LocalizationFatalErrorDecompilationAborted")}\n");
-                Window.Print("{0}\n", e.Message);
-                Window.Print("{0}\n", e.StackTrace);
-                Window.DecompileButton.SetContent(Application.GetResource("LocalizationDecompile"));
+                Console.WriteLine($"\n{Application.GetResource("LocalizationFatalErrorDecompilationAborted")}\n");
+                Console.WriteLine("{0}\n", e.Message);
+                Console.WriteLine("{0}\n", e.StackTrace);
                 Status = "";
                 return;
             }
-            
-            Window.Print(Application.GetResource("LocalizationTime") + "\n", sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency);
+
+            Console.WriteLine(Application.GetResource("LocalizationTime") + "\n", sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency);
 
             var success = false;
 
@@ -142,71 +135,49 @@ namespace Decomp.Core
             }
             catch (ThreadAbortException)
             {
-                Window.Print(Application.GetResource("LocalizationDecompilationCanceled") + "\n");
-                Window.DecompileButton.SetContent(Application.GetResource("LocalizationDecompile"));
+                Console.WriteLine(Application.GetResource("LocalizationDecompilationCanceled") + "\n");
                 Status = "";
                 return;
             }
             catch (Exception ex)
             {
-                Window.Print(Application.GetResource("LocalizationFatalErrorDecompilationAborted") + "\n");
-                Window.Print("{0}\n", ex.Message);
-                Window.Print("{0}\n", ex.StackTrace);
-
-                var errorWindowThread = new Thread(() =>
-                {
-                    var errorWindow = new ErrorWindow(ex);
-                    errorWindow.ShowDialog();
-                    Thread.CurrentThread.Abort();
-                    //_workThread.Resume();
-                });
-                errorWindowThread.SetApartmentState(ApartmentState.STA);
-                errorWindowThread.CurrentCulture = CultureInfo.GetCultureInfo(1033);
-                errorWindowThread.CurrentUICulture = CultureInfo.GetCultureInfo(1033);
-                errorWindowThread.Start();
-                //_workThread.Suspend();
+                Console.WriteLine(Application.GetResource("LocalizationFatalErrorDecompilationAborted") + "\n");
+                Console.WriteLine("{0}\n", ex.Message);
+                Console.WriteLine("{0}\n", ex.StackTrace);
             }
 #endif
 
-            Window.Print(Application.GetResource("LocalizationTotalTime") + "\n", sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency);
+            Console.WriteLine(Application.GetResource("LocalizationTotalTime") + "\n", sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency);
 
-            if (Window.OpenAfterCompleteCheckBox.IsChecked() && success) Process.Start(Common.OutputPath);
-
-            Window.DecompileButton.SetContent(Application.GetResource("LocalizationDecompile"));
-            Status = "";
+            if (success) Process.Start(Common.OutputPath);
         }
 
         private static void InitializePath(out bool isSingleFile)
         {
             var x = false;
-            Window.Dispatcher?.Invoke(() =>
+            if (!File.Exists(Common.InputPath))
             {
-                if (!File.Exists(Window.SourcePathTextBox.Text))
-                {
-                    Common.InputPath = Window.SourcePathTextBox.Text;
-                    x = false;
-                }
-                else
-                {
-                    Common.InputPath = Path.GetDirectoryName(Window.SourcePathTextBox.Text);
-                    x = true;
-                }
-                Common.OutputPath = Window.OutputPathTextBox.Text;
+                Common.InputPath = Common.InputPath;
+                x = false;
+            }
+            else
+            {
+                Common.InputPath = Path.GetDirectoryName(Common.InputPath);
+                x = true;
+            }
+            Common.OutputPath = Common.OutputPath;
 
-                if (Common.InputPath != null && Common.InputPath[Common.InputPath.Length - 1] == '\\')
-                    Common.InputPath = Common.InputPath.Remove(Common.InputPath.Length - 1, 1);
-                if (Common.OutputPath[Common.OutputPath.Length - 1] == '\\')
-                    Common.OutputPath = Common.OutputPath.Remove(Common.OutputPath.Length - 1, 1);
-            });
+            if (Common.InputPath != null && Common.InputPath[Common.InputPath.Length - 1] == '\\')
+                Common.InputPath = Common.InputPath.Remove(Common.InputPath.Length - 1, 1);
+            if (Common.OutputPath[Common.OutputPath.Length - 1] == '\\')
+                Common.OutputPath = Common.OutputPath.Remove(Common.OutputPath.Length - 1, 1);
             isSingleFile = x;
         }
 
         private static void InitializeOpCodes()
         {
-            //Common.Operations = new Dictionary<long, string>();
-            //Common.Operators = new Dictionary<int, Operator>();
             var opCodes = new Dictionary<int, Operator>();
-            Window.ModeComboBox.Dispatcher?.Invoke(() => Common.SelectedMode = (Mode)Window.ModeComboBox.SelectedIndex);
+            Common.SelectedMode = Mode.Vanilla; // Default mode, can be changed if needed
             var operators = Operator.GetCollection(Common.SelectedMode);
             foreach (var op in operators) opCodes[op.Code] = op;
             Common.Operators = opCodes;
@@ -266,7 +237,7 @@ namespace Decomp.Core
             Status = $"{Application.GetResource("LocalizationDecompilation")} -- {Application.GetResource("LocalizationInitialization")} music.txt";
             Common.Music = Music.Initialize();
             Status = $"{Application.GetResource("LocalizationDecompilation")} -- {Application.GetResource("LocalizationInitialization")} skins.txt";
-            Common.Skins = Common.SelectedMode == Mode.Caribbean ? 
+            Common.Skins = Common.SelectedMode == Mode.Caribbean ?
                 Caribbean.Skins.Initialize() : Skins.Initialize();
             Status = $"{Application.GetResource("LocalizationDecompilation")} -- {Application.GetResource("LocalizationInitialization")} info_pages.txt";
             Common.InfoPages = InfoPages.Initialize();
@@ -277,18 +248,18 @@ namespace Decomp.Core
         {
             if (!File.Exists(Path.Combine(Common.InputPath, strFileName)))
             {
-                Window.Print(Application.GetResource("LocalizationFileNotFound2") + "\n", Common.InputPath, strFileName);
+                Console.WriteLine(Application.GetResource("LocalizationFileNotFound2") + "\n", Common.InputPath, strFileName);
                 return;
             }
 
             var sw = Stopwatch.StartNew();
             var dblTime = sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
-            
+
             var fInput = new Text(Path.Combine(Common.InputPath, strFileName));
             var strFirstString = fInput.GetString();
             if (strFirstString == null)
             {
-                Window.Print(Application.GetResource("LocalizationUnknownFormat") + "\n");
+                Console.WriteLine(Application.GetResource("LocalizationUnknownFormat") + "\n");
                 return;
             }
             var bFirstNumber = Int32.TryParse(strFirstString, out var _);
@@ -300,9 +271,9 @@ namespace Decomp.Core
                 Triggers.Decompile();
             else if (strFirstString == "simple_triggers_file version 1")
                 SimpleTriggers.Decompile();
-            else if (strFirstString == "dialogsfile version 2") //Warband dialogs file
+            else if (strFirstString == "dialogsfile version 2")
                 Dialogs.Decompile();
-            else if (strFirstString == "dialogsfile version 1") //M&B v1.011/v1.010 dialogs file
+            else if (strFirstString == "dialogsfile version 1")
                 Vanilla.Dialogs.Decompile();
             else if (strFirstString == "menusfile version 1")
                 Menus.Decompile();
@@ -310,9 +281,9 @@ namespace Decomp.Core
                 Factions.Decompile();
             else if (strFirstString == "infopagesfile version 1")
                 InfoPages.Decompile();
-            else if (strFirstString == "itemsfile version 3") //Warband items file
+            else if (strFirstString == "itemsfile version 3")
                 Items.Decompile();
-            else if (strFirstString == "itemsfile version 2") //M&B v1.011/v1.010 items file
+            else if (strFirstString == "itemsfile version 2")
                 Vanilla.Items.Decompile();
             else if (strFirstString == "map_icons_file version 1")
                 MapIcons.Decompile();
@@ -334,21 +305,21 @@ namespace Decomp.Core
                 SceneProps.Decompile();
             else if (strFirstString == "scenesfile version 1")
                 Scenes.Decompile();
-            else if (strFirstString == "skins_file version 1" && Common.SelectedMode == Mode.Caribbean) //Caribbean skins file
+            else if (strFirstString == "skins_file version 1" && Common.SelectedMode == Mode.Caribbean)
                 Caribbean.Skins.Decompile();
-            else if (strFirstString == "skins_file version 1") //Warband skins file
+            else if (strFirstString == "skins_file version 1")
                 Skins.Decompile();
-            else if (strFirstString == "soundsfile version 3") //Warband sounds file
+            else if (strFirstString == "soundsfile version 3")
                 Sounds.Decompile();
-            else if (strFirstString == "soundsfile version 2") //M&B v1.011/v1.010 sounds file
+            else if (strFirstString == "soundsfile version 2")
                 Vanilla.Sounds.Decompile();
             else if (strFirstString == "stringsfile version 1")
                 Strings.Decompile();
-            else if (strFirstString == "troopsfile version 2" && Common.SelectedMode == Mode.Caribbean) //Caribbean troops file
+            else if (strFirstString == "troopsfile version 2" && Common.SelectedMode == Mode.Caribbean)
                 Caribbean.Troops.Decompile();
-            else if (strFirstString == "troopsfile version 2") //Warband troops file
+            else if (strFirstString == "troopsfile version 2")
                 Troops.Decompile();
-            else if (strFirstString == "troopsfile version 1") //M&B v1.011/v1.010 troops file
+            else if (strFirstString == "troopsfile version 1")
                 Vanilla.Troops.Decompile();
             else if (bFirstNumber && strFileName == "tableau_materials.txt")
                 TableauMaterials.Decompile();
@@ -371,17 +342,15 @@ namespace Decomp.Core
                 GroundSpecs.Decompile();
             else if (bFirstNumber && strFileName == "skyboxes.txt")
                 Skyboxes.Decompile();
-            else 
-                Window.Print(Application.GetResource("LocalizationUnknownFormat") + "\n"); 
+            else
+                Console.WriteLine(Application.GetResource("LocalizationUnknownFormat") + "\n");
 
-            Window.Print(Application.GetResource("LocalizationFileTime") + "\n", strFileName, sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency - dblTime);
+            Console.WriteLine(Application.GetResource("LocalizationFileTime") + "\n", strFileName, sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency - dblTime);
         }
 
         private static string GetSingleFileName()
         {
-            string result = null;
-            Window.SourcePathTextBox.Dispatcher?.Invoke(() => result = Path.GetFileName(Window.SourcePathTextBox.Text));
-            return result;
+            return Path.GetFileName(Common.InputPath);
         }
 
         public static string GetShadersFullFileName(out bool founded)
@@ -405,7 +374,7 @@ namespace Decomp.Core
                 var sw = Stopwatch.StartNew();
                 var dblTime = sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency;
                 Shaders.Shaders.Decompile(Path.Combine(Common.InputPath, strFileName));
-                Window.Print(Application.GetResource("LocalizationFileTime") + "\n", strFileName, sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency - dblTime);
+                Console.WriteLine(Application.GetResource("LocalizationFileTime") + "\n", strFileName, sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency - dblTime);
                 return;
             }
 
@@ -422,10 +391,10 @@ namespace Decomp.Core
                         WSE2.PhysicsMaterials.Decompile();
                         break;
                 }
-                Window.Print(Application.GetResource("LocalizationFileTime") + "\n", strFileName, sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency - dblTime);
+                Console.WriteLine(Application.GetResource("LocalizationFileTime") + "\n", strFileName, sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency - dblTime);
                 return;
             }
-            
+
             string[] strModFiles = { "actions.txt", "conversation.txt", "factions.txt", "info_pages.txt", "item_kinds1.txt", "map_icons.txt",
             "menus.txt", "meshes.txt", "mission_templates.txt", "music.txt", "particle_systems.txt", "parties.txt", "party_templates.txt",
             "postfx.txt", "presentations.txt", "quests.txt", "scene_props.txt", "scenes.txt", "scripts.txt", "simple_triggers.txt",
@@ -440,7 +409,7 @@ namespace Decomp.Core
         {
             File.Copy(Path.Combine(Common.InputPath, "variables.txt"), Path.Combine(Common.OutputPath, "variables.txt"), true);
 
-            var decompileShaders = Window.DecompileShadersCheckBox.IsChecked();
+            var decompileShaders = true; // Default to true, can be changed if needed
 
             if (!Common.IsVanillaMode)
                 Win32FileWriter.WriteAllText(Path.Combine(Common.OutputPath, "module_constants.py"), Header.Standard + Common.ModuleConstantsText);
@@ -460,9 +429,9 @@ namespace Decomp.Core
 
             var sShadersFile = GetShadersFullFileName(out var b);
             if (b && decompileShaders) iNumFiles++;
-            
+
             double dblProgressForOneFile = 100.0 / iNumFiles, dblProgress = 0;
-            
+
             foreach (var strModFile in strModFiles.Where(strModFile => !(Common.IsVanillaMode && (strModFile == "info_pages.txt" || strModFile == "postfx.txt"))))
             {
                 ProcessFile(strModFile);
@@ -479,7 +448,7 @@ namespace Decomp.Core
 
             Common.InputPath = Path.Combine(Common.InputPath, "Data");
 
-            foreach (var strModDataFile in strModDataFiles.Where(strModDataFile => File.Exists(Common.InputPath + @"\" + strModDataFile)))
+            foreach (var strModDataFile in strModDataFiles.Where(strModDataFile => File.Exists(Path.Combine(Common.InputPath, strModDataFile))))
             {
                 ProcessFile(strModDataFile);
                 dblProgress += dblProgressForOneFile;
@@ -491,9 +460,9 @@ namespace Decomp.Core
         {
             var sw = Stopwatch.StartNew();
             Shaders.Shaders.Decompile(sShadersFile);
-            Window.Print(Application.GetResource("LocalizationFileTime") + "\n", Path.GetFileName(sShadersFile), sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency);
+            Console.WriteLine(Application.GetResource("LocalizationFileTime") + "\n", Path.GetFileName(sShadersFile), sw.ElapsedTicks * 1000.0 / Stopwatch.Frequency);
         }
-        
+
         private static readonly SimpleTrie<Action> InitializeTrie = new SimpleTrie<Action>
         {
             ["actions.txt"] = () => { },
