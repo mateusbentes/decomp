@@ -5,7 +5,7 @@ namespace DecompilerCLI
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             if (args.Length == 0)
             {
@@ -17,7 +17,7 @@ namespace DecompilerCLI
                 Console.WriteLine("  WSE320            - Warband Script Enhancer 3.2.0");
                 Console.WriteLine("  WSE450            - Warband Script Enhancer 4.5.0");
                 Console.WriteLine("  Caribbean         - Mount & Blade: Caribbean");
-                return;
+                return 1;
             }
 
             string inputFile = args[0];
@@ -28,10 +28,12 @@ namespace DecompilerCLI
             {
                 Decompiler.Decompile(inputFile, outputFile, gameVersion);
                 Console.WriteLine("Decompilation completed successfully.");
+                return 0;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error during decompilation: {ex.Message}");
+                return 1;
             }
         }
     }

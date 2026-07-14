@@ -40,7 +40,7 @@ namespace Decomp.Core
             using Text text = new Text(inputFile);
             using FileWriter output = string.IsNullOrEmpty(outputFile)
                 ? new FileWriter(Console.OpenStandardOutput())
-                : new FileWriter(outputFile!);
+                : new FileWriter(outputFile ?? throw new ArgumentNullException(nameof(outputFile)));
 
             while (text.Peek() != -1)
             {
