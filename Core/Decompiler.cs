@@ -37,11 +37,11 @@ namespace Decomp.Core
                 _ => throw new ArgumentException($"Versão do jogo não suportada: {gameVersion}")
             };
 
-            Operator op = new Operator(version);
+            Operator op = new Operator();
+            op.SetVersion(version);
 
             // Processar o arquivo de entrada
-            Text text = new Text();
-            text.Load(inputFile);
+            Text text = new Text(inputFile);
 
             Win32FileWriter output = null;
             try
@@ -54,7 +54,7 @@ namespace Decomp.Core
                 while (text.Peek() != -1)
                 {
                     int iRecords = text.GetInt();
-                    output.WriteLine("decl {0} {1}", iRecords, op.GetVersion());
+                    output.WriteLine("decl {0}", iRecords);
 
                     for (int r = 0; r < iRecords; r++)
                     {
@@ -64,7 +64,7 @@ namespace Decomp.Core
                         for (int i = 0; i < iCodeSize; i++)
                         {
                             int iOpCode = text.GetInt();
-                            string sOpCode = op[iOpCode];
+                            string sOpCode = op.GetOperationName(iOpCode);
                             int iNumParams = op.GetNumParams(iOpCode);
                             output.Write("\t{0}", sOpCode);
 
