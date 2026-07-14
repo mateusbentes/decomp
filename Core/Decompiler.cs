@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Decomp.Core.Operators;
+using Decomp.Core.Shaders;
 
 namespace Decomp.Core
 {
@@ -34,6 +35,14 @@ namespace Decomp.Core
                 "caribbean" => new CaribbeanVersion(),
                 _ => throw new ArgumentException($"Versão do jogo não suportada: {gameVersion}")
             };
+
+            string extension = Path.GetExtension(inputFile).ToLowerInvariant();
+            if (extension is ".fx" or ".vsh" or ".psh")
+            {
+                string outputPath = outputFile ?? Path.ChangeExtension(inputFile, ".txt");
+                ShaderDecompiler.Decompile(inputFile, outputPath);
+                return;
+            }
 
             var operators = version.GetOperators().ToDictionary(op => op.Code, op => op);
 
