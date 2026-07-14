@@ -51,45 +51,37 @@ namespace Decomp.Core
                 ? new FileWriter(Console.Out)
                 : new FileWriter(outputFile);
 
-            try
+            // Do NOT manually call Dispose here; the using declarations above handle it.
+            while (text.Peek() != -1)
             {
-                while (text.Peek() != -1)
+                int iRecords = text.GetInt();
+                output.WriteLine("decl {0}", iRecords);
+
+                for (int r = 0; r < iRecords; r++)
                 {
-                    int iRecords = text.GetInt();
-                    output.WriteLine("decl {0}", iRecords);
+                    int iCodeSize = text.GetInt();
+                    output.WriteLine("code {0}", iCodeSize);
 
-                    for (int r = 0; r < iRecords; r++)
+                    for (int i = 0; i < iCodeSize; i++)
                     {
-                        int iCodeSize = text.GetInt();
-                        output.WriteLine("code {0}", iCodeSize);
-
-                        for (int i = 0; i < iCodeSize; i++)
+                        int iOpCode = text.GetInt();
+                        if (!operators.TryGetValue(iOpCode, out var op))
                         {
-                            int iOpCode = text.GetInt();
-                            if (!operators.TryGetValue(iOpCode, out var op))
-                            {
-                                output.WriteLine("\tunknown_opcode_{0}", iOpCode);
-                                continue;
-                            }
-
-                            output.Write("\t{0}", op.Value);
-                            int iNumParams = op.Parameters.Count;
-
-                            for (int p = 0; p < iNumParams; p++)
-                            {
-                                int iParam = text.GetInt();
-                                output.Write(" {0}", op.GetParameter(p, iParam.ToString()));
-                            }
-                            output.WriteLine();
+                            output.WriteLine("\tunknown_opcode_{0}", iOpCode);
+                            continue;
                         }
+
+                        output.Write("\t{0}", op.Value);
+                        int iNumParams = op.Parameters.Count;
+
+                        for (int p = 0; p < iNumParams; p++)
+                        {
+                            int iParam = text.GetInt();
+                            output.Write(" {0}", op.GetParameter(p, iParam.ToString()));
+                        }
+                        output.WriteLine();
                     }
                 }
-            }
-            catch
-            {
-                output.Dispose();
-                text.Dispose();
-                throw;
             }
         }
     }

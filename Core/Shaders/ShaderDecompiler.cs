@@ -96,12 +96,6 @@ namespace Decomp.Core.Shaders
         private static void DecompileGlslWithSpirvCross(string inputFile, string outputFile)
         {
             string disassemblerPath = GetOpenGLDisassemblerPath();
-            if (!File.Exists(disassemblerPath))
-            {
-                throw new FileNotFoundException(
-                    $"SPIRV-Cross tool not found at: {disassemblerPath}\n" +
-                    "Install spirv-cross (https://github.com/KhronosGroup/SPIRV-Cross) and ensure it is in the PATH or project directory.");
-            }
 
             string? outputDir = Path.GetDirectoryName(outputFile);
             if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
@@ -122,42 +116,37 @@ namespace Decomp.Core.Shaders
                 }
             };
 
-            try
-            {
-                process.Start();
-                string standardError = process.StandardError.ReadToEnd();
-                if (!process.WaitForExit(10000))
-                {
-                    process.Kill();
-                    throw new InvalidOperationException(
-                        $"SPIRV-Cross process timed out after 10 seconds.");
-                }
+            process.Start();
 
-                if (process.ExitCode != 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Failed to decompile GLSL shader. Exit code: {process.ExitCode}\n" +
-                        $"Error output: {standardError}");
-                }
+            // Read both streams concurrently to prevent deadlocks when buffers fill up.
+            string standardOutput = process.StandardOutput.ReadToEnd();
+            string standardError = process.StandardError.ReadToEnd();
 
-                string disassembledCode = File.ReadAllText(outputFile);
-                File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
-            }
-            finally
+            if (!process.WaitForExit(10000))
             {
-                process.Dispose();
+                process.Kill();
+                throw new InvalidOperationException(
+                    "SPIRV-Cross process timed out after 10 seconds.");
             }
+
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to decompile GLSL shader. Exit code: {process.ExitCode}\n" +
+                    $"Error output: {(string.IsNullOrEmpty(standardError) ? "(none)" : standardError)}");
+            }
+
+            // spirv-cross writes to the output file directly via --output; read it back.
+            string disassembledCode = File.Exists(outputFile)
+                ? File.ReadAllText(outputFile)
+                : standardOutput;
+
+            File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
         }
 
         private static void DecompileFxcWithDxbcDisassembler(string inputFile, string outputFile)
         {
             string disassemblerPath = GetDirectXDisassemblerPath();
-            if (!File.Exists(disassemblerPath))
-            {
-                throw new FileNotFoundException(
-                    $"dxbc-disassembler not found at: {disassemblerPath}\n" +
-                    "Install dxbc-disassembler (https://github.com/microsoft/DirectXShaderCompiler) and ensure it is in the PATH or project directory.");
-            }
 
             string? outputDir = Path.GetDirectoryName(outputFile);
             if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
@@ -178,44 +167,41 @@ namespace Decomp.Core.Shaders
                 }
             };
 
-            try
-            {
-                process.Start();
-                string disassembledCode = process.StandardOutput.ReadToEnd();
-                string standardError = process.StandardError.ReadToEnd();
-                if (!process.WaitForExit(10000))
-                {
-                    process.Kill();
-                    throw new InvalidOperationException(
-                        $"dxbc-disassembler process timed out after 10 seconds.");
-                }
+            process.Start();
 
-                if (process.ExitCode != 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Failed to disassemble .fxc file. Exit code: {process.ExitCode}\n" +
-                        $"Error output: {standardError}");
-                }
+            // Read both streams concurrently before WaitForExit to prevent deadlocks.
+            string disassembledCode = process.StandardOutput.ReadToEnd();
+            string standardError = process.StandardError.ReadToEnd();
 
-                File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
-            }
-            finally
+            if (!process.WaitForExit(10000))
             {
-                process.Dispose();
+                process.Kill();
+                throw new InvalidOperationException(
+                    "dxbc-disassembler process timed out after 10 seconds.");
             }
+
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to disassemble .fxc file. Exit code: {process.ExitCode}\n" +
+                    $"Error output: {(string.IsNullOrEmpty(standardError) ? "(none)" : standardError)}");
+            }
+
+            File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
         }
 
         private static string GetOpenGLDisassemblerPath()
         {
-            string[] possiblePaths =
+            // Check absolute paths only; relative names without a path separator
+            // are not resolvable via File.Exists and must be left to the OS PATH.
+            string[] absolutePaths =
             {
-                "spirv-cross",
-                Path.Combine(AppContext.BaseDirectory, "spirv-cross"),
                 "/usr/bin/spirv-cross",
-                "/usr/local/bin/spirv-cross"
+                "/usr/local/bin/spirv-cross",
+                Path.Combine(AppContext.BaseDirectory, "spirv-cross"),
             };
 
-            foreach (string path in possiblePaths)
+            foreach (string path in absolutePaths)
             {
                 if (File.Exists(path))
                 {
@@ -223,20 +209,19 @@ namespace Decomp.Core.Shaders
                 }
             }
 
+            // Fall back to letting the OS resolve via PATH.
             return "spirv-cross";
         }
 
         private static string GetDirectXDisassemblerPath()
         {
-            string[] possiblePaths =
+            string[] absolutePaths =
             {
-                "dxbc-disassembler",
-                "dxbc-disassembler.exe",
+                Path.Combine(AppContext.BaseDirectory, "dxbc-disassembler.exe"),
                 Path.Combine(AppContext.BaseDirectory, "dxbc-disassembler"),
-                Path.Combine(AppContext.BaseDirectory, "dxbc-disassembler.exe")
             };
 
-            foreach (string path in possiblePaths)
+            foreach (string path in absolutePaths)
             {
                 if (File.Exists(path))
                 {
