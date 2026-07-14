@@ -60,7 +60,9 @@ namespace Decomp.Core.Shaders
             try
             {
                 byte[] shaderBytecode = File.ReadAllBytes(inputFile);
+#pragma warning disable CA1416
                 string disassembledCode = Shaders.DisassembleFxcWithD3DDisassemble(shaderBytecode);
+#pragma warning restore CA1416
                 File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
             }
             catch (DllNotFoundException ex)

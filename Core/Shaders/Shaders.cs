@@ -68,7 +68,9 @@ namespace Decomp.Core.Shaders
             }
 
             var shaderBytecode = File.ReadAllBytes(inputFile);
+#pragma warning disable CA1416
             var disassembledCode = DisassembleFxcWithD3DDisassemble(shaderBytecode);
+#pragma warning restore CA1416
             File.WriteAllText(outputFile, disassembledCode);
         }
 
