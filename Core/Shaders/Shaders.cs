@@ -6,6 +6,9 @@ namespace Decomp.Core.Shaders
 {
     public static class Shaders
     {
+        /// <summary>
+        /// Checks if the current platform is Windows.
+        /// </summary>
         public static bool IsWindowsPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
         [ComImport]
@@ -13,13 +16,22 @@ namespace Decomp.Core.Shaders
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         private interface ID3DBlob
         {
+            /// <summary>
+            /// Retrieves a pointer to the blob's data.
+            /// </summary>
             [PreserveSig]
             IntPtr GetBufferPointer();
 
+            /// <summary>
+            /// Retrieves the size of the blob's data.
+            /// </summary>
             [PreserveSig]
             int GetBufferSize();
         }
 
+        /// <summary>
+        /// Disassembles compiled HLSL code.
+        /// </summary>
         [DllImport("d3dcompiler_47.dll", EntryPoint = "D3DDisassemble", CharSet = CharSet.Unicode)]
         private static extern int D3DDisassemble(
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] pSrcData,
@@ -28,6 +40,11 @@ namespace Decomp.Core.Shaders
             string? szComments,
             out ID3DBlob ppDisassembly);
 
+        /// <summary>
+        /// Decompiles a shader file (placeholder method).
+        /// </summary>
+        /// <param name="sFileName">Input shader file path</param>
+        /// <exception cref="PlatformNotSupportedException">Always thrown as this method is deprecated</exception>
         public static void Decompile(string sFileName)
         {
             throw new PlatformNotSupportedException(
@@ -35,6 +52,12 @@ namespace Decomp.Core.Shaders
                 "Use ShaderDecompiler.Decompile() for cross-platform shader decompilation.");
         }
 
+        /// <summary>
+        /// Decompiles a compiled .fxc shader file to text format.
+        /// </summary>
+        /// <param name="inputFile">Path to the input .fxc file</param>
+        /// <param name="outputFile">Path to save the disassembled output</param>
+        /// <exception cref="PlatformNotSupportedException">Thrown when not running on Windows</exception>
         public static void DecompileFxc(string inputFile, string outputFile)
         {
             if (!IsWindowsPlatform)
@@ -48,6 +71,12 @@ namespace Decomp.Core.Shaders
             File.WriteAllText(outputFile, disassembledCode);
         }
 
+        /// <summary>
+        /// Internal method to disassemble shader bytecode using D3DDisassemble.
+        /// </summary>
+        /// <param name="shaderBytecode">Compiled shader bytecode</param>
+        /// <returns>Disassembled shader code as string</returns>
+        /// <exception cref="PlatformNotSupportedException">Thrown when not running on Windows</exception>
         internal static string DisassembleFxcWithD3DDisassemble(byte[] shaderBytecode)
         {
             if (!IsWindowsPlatform)
