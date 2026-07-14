@@ -20,7 +20,7 @@ namespace DecompilerCLI
 
             try
             {
-                Decompiler.StartDecompilation(inputFile, outputFile, gameVersion);
+                Decompiler.Decompile(inputFile, outputFile, gameVersion);
                 Console.WriteLine("Decompilation completed successfully.");
             }
             catch (Exception ex)
