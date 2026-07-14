@@ -13,6 +13,5 @@ obj/
 
 # Tooling & AI assistant caches
 .refact
-.aider*# Compileation trash
 bin/
 obj/
