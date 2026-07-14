@@ -20,37 +20,26 @@ namespace Decomp.Core.Shaders
                 gameVersion = "VanillaWarband";
             }
 
-            bool isWarband = gameVersion.Equals("VanillaWarband", StringComparison.OrdinalIgnoreCase) ||
-                            gameVersion.Equals("WSE320", StringComparison.OrdinalIgnoreCase) ||
-                            gameVersion.Equals("WSE450", StringComparison.OrdinalIgnoreCase);
-
-            // Detect if the input is a compiled .fxc file (DirectX binary)
-            bool isFxcFile = Path.GetExtension(inputFile).Equals(".fxc", StringComparison.OrdinalIgnoreCase);
+            string extension = Path.GetExtension(inputFile).ToLowerInvariant();
+            bool isFxcFile = extension.Equals(".fxc", StringComparison.OrdinalIgnoreCase);
+            bool isGlslFile = extension.Equals(".glsl", StringComparison.OrdinalIgnoreCase);
+            bool isWarbandShader = gameVersion.Equals("VanillaWarband", StringComparison.OrdinalIgnoreCase) ||
+                                  gameVersion.Equals("WSE320", StringComparison.OrdinalIgnoreCase) ||
+                                  gameVersion.Equals("WSE450", StringComparison.OrdinalIgnoreCase);
 
             if (isFxcFile)
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    // Use native Direct3D APIs on Windows
-                    Shaders.DecompileFxc(inputFile, outputFile);
-                }
-                else
-                {
-                    // Use dxbc-disassembler on Linux/macOS
-                    DecompileFxcWithDxbcDisassembler(inputFile, outputFile);
-                }
+                DecompileFxcWithDxbcDisassembler(inputFile, outputFile);
             }
-            else if (isWarband && IsOpenGLShader(inputFile) && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            else if (isGlslFile || (isWarbandShader && IsOpenGLShader(inputFile)))
             {
-                DecompileWarbandOpenGLShader(inputFile, outputFile);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Shaders.Decompile(inputFile);
+                DecompileGlslWithSpirvCross(inputFile, outputFile);
             }
             else
             {
-                DecompileDirectXShader(inputFile, outputFile);
+                throw new NotSupportedException(
+                    $"Shader decompilation for file type '{extension}' is not supported. " +
+                    "Supported formats: .fxc (DirectX), .glsl (OpenGL).");
             }
         }
 
@@ -58,7 +47,6 @@ namespace Decomp.Core.Shaders
         {
             try
             {
-                // OpenGL shaders (Warband) usually start with "#version" or have GLSL headers
                 using var reader = new StreamReader(inputFile, Encoding.UTF8);
                 string firstLine = reader.ReadLine() ?? string.Empty;
                 return firstLine.StartsWith("#version", StringComparison.OrdinalIgnoreCase) ||
@@ -70,13 +58,13 @@ namespace Decomp.Core.Shaders
             }
         }
 
-        private static void DecompileWarbandOpenGLShader(string inputFile, string outputFile)
+        private static void DecompileGlslWithSpirvCross(string inputFile, string outputFile)
         {
             string disassemblerPath = GetOpenGLDisassemblerPath();
             if (!File.Exists(disassemblerPath))
             {
                 throw new FileNotFoundException(
-                    $"OpenGL disassembler tool not found at: {disassemblerPath}\n" +
+                    $"SPIRV-Cross tool not found at: {disassemblerPath}\n" +
                     "Install spirv-cross (https://github.com/KhronosGroup/SPIRV-Cross) and ensure it is in the PATH or project directory.");
             }
 
@@ -91,32 +79,36 @@ namespace Decomp.Core.Shaders
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = disassemblerPath,
-                    Arguments = $"--es --output {outputFile} \"{inputFile}\"",
+                    Arguments = $"--es --output \"{outputFile}\" \"{inputFile}\"",
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
                 }
             };
 
             process.Start();
+            string standardError = process.StandardError.ReadToEnd();
             process.WaitForExit();
 
             if (process.ExitCode != 0)
             {
-                throw new InvalidOperationException($"Failed to decompile OpenGL shader. Exit code: {process.ExitCode}");
+                throw new InvalidOperationException(
+                    $"Failed to decompile GLSL shader. Exit code: {process.ExitCode}\n" +
+                    $"Error output: {standardError}");
             }
 
             string disassembledCode = File.ReadAllText(outputFile);
             File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
         }
 
-        private static void DecompileDirectXShader(string inputFile, string outputFile)
+        private static void DecompileFxcWithDxbcDisassembler(string inputFile, string outputFile)
         {
             string disassemblerPath = GetDirectXDisassemblerPath();
             if (!File.Exists(disassemblerPath))
             {
                 throw new FileNotFoundException(
-                    $"DirectX disassembler tool not found at: {disassemblerPath}\n" +
+                    $"dxbc-disassembler not found at: {disassemblerPath}\n" +
                     "Install dxbc-disassembler (https://github.com/microsoft/DirectXShaderCompiler) and ensure it is in the PATH or project directory.");
             }
 
@@ -133,6 +125,7 @@ namespace Decomp.Core.Shaders
                     FileName = disassemblerPath,
                     Arguments = $"-disassemble \"{inputFile}\"",
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
                 }
@@ -140,52 +133,14 @@ namespace Decomp.Core.Shaders
 
             process.Start();
             string disassembledCode = process.StandardOutput.ReadToEnd();
+            string standardError = process.StandardError.ReadToEnd();
             process.WaitForExit();
 
             if (process.ExitCode != 0)
             {
-                throw new InvalidOperationException($"Failed to decompile DirectX shader. Exit code: {process.ExitCode}");
-            }
-
-            File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
-        }
-
-        private static void DecompileFxcWithDxbcDisassembler(string inputFile, string outputFile)
-        {
-            string disassemblerPath = GetDirectXDisassemblerPath();
-            if (!File.Exists(disassemblerPath))
-            {
-                throw new FileNotFoundException(
-                    $"dxbc-disassembler not found at: {disassemblerPath}\n" +
-                    "Please follow the Shader Decompilation Instructions to install the required tools:\n" +
-                    "https://github.com/YourProject/ShaderDecompilationGuide");
-            }
-
-            string? outputDir = Path.GetDirectoryName(outputFile);
-            if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
-
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = disassemblerPath,
-                    Arguments = $"-disassemble \"{inputFile}\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                }
-            };
-
-            process.Start();
-            string disassembledCode = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-
-            if (process.ExitCode != 0)
-            {
-                throw new InvalidOperationException($"Failed to disassemble .fxc file. Exit code: {process.ExitCode}");
+                throw new InvalidOperationException(
+                    $"Failed to disassemble .fxc file. Exit code: {process.ExitCode}\n" +
+                    $"Error output: {standardError}");
             }
 
             File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
@@ -196,7 +151,9 @@ namespace Decomp.Core.Shaders
             string[] possiblePaths =
             {
                 "spirv-cross",
-                Path.Combine(AppContext.BaseDirectory, "spirv-cross")
+                Path.Combine(AppContext.BaseDirectory, "spirv-cross"),
+                "/usr/bin/spirv-cross",
+                "/usr/local/bin/spirv-cross"
             };
 
             foreach (string path in possiblePaths)
@@ -228,7 +185,9 @@ namespace Decomp.Core.Shaders
                 }
             }
 
-            return "dxbc-disassembler";
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "dxbc-disassembler.exe"
+                : "dxbc-disassembler";
         }
     }
 }
