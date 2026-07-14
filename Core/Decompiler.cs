@@ -37,8 +37,8 @@ namespace Decomp.Core
                 _ => throw new ArgumentException($"Versão do jogo não suportada: {gameVersion}")
             };
 
-            Operator op = new Operator();
-            op.SetVersion(version);
+            // Obter a coleção de operadores da versão selecionada
+            var operators = Operator.GetCollection(version.GetOperators()).ToDictionary(op => op.Code, op => op);
 
             // Processar o arquivo de entrada
             Text text = new Text(inputFile);
@@ -47,7 +47,7 @@ namespace Decomp.Core
             try
             {
                 output = string.IsNullOrEmpty(outputFile)
-                    ? new Win32FileWriter(Console.OpenStandardOutput())
+                    ? new Win32FileWriter("CON") // Saída padrão (console)
                     : new Win32FileWriter(outputFile);
 
                 // Lógica real de descompilação
@@ -64,14 +64,19 @@ namespace Decomp.Core
                         for (int i = 0; i < iCodeSize; i++)
                         {
                             int iOpCode = text.GetInt();
-                            string sOpCode = op.GetOperationName(iOpCode);
-                            int iNumParams = op.GetNumParams(iOpCode);
-                            output.Write("\t{0}", sOpCode);
+                            if (!operators.TryGetValue(iOpCode, out var op))
+                            {
+                                output.WriteLine("\tunknown_opcode_{0}", iOpCode);
+                                continue;
+                            }
+
+                            output.Write("\t{0}", op.Value);
+                            int iNumParams = op.Parameters.Count;
 
                             for (int p = 0; p < iNumParams; p++)
                             {
                                 int iParam = text.GetInt();
-                                output.Write(" {0}", op.GetParameter(i, sOpCode, iParam));
+                                output.Write(" {0}", op.GetParameter(p, iParam.ToString()));
                             }
                             output.WriteLine();
                         }
