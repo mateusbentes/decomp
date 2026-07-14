@@ -67,7 +67,7 @@ namespace Decomp.Core.Operators
         Caribbean,
         WarbandScriptEnhancer450,
         WarbandScriptEnhancer320,
-        Vanilla,  // Mount & Blade: With Fire & Sword
+        Vanilla,  // Mount & Blade: With Fire & Sword, with fire and sword still in vanilla
     }
 
 #pragma warning disable CA1716 // Identifiers should not match keywords
