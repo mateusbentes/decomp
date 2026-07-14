@@ -67,7 +67,7 @@ namespace Decomp.Core.Operators
         Caribbean,
         WarbandScriptEnhancer450,
         WarbandScriptEnhancer320,
-        Vanilla,  // Mount & Blade: With Fire & Sword
+        Vanilla,
     }
 
 #pragma warning disable CA1716 // Identifiers should not match keywords
@@ -98,19 +98,18 @@ namespace Decomp.Core.Operators
             Parameters = p;
         }
 
-        public string GetParameter(int index, string s)
+        public string GetParameter(int index, string? s)
         {
             if (s == null) return string.Empty;
 
             var b = ulong.TryParse(s, out var t);
             if (!b) return s;
 
-            //maybe t is common param?
             if (t > 0x00FFFFFFFFFFFFFF) return Common.GetParam(t);
 
-            if (!Parameters.ContainsKey(index)) return s;
+            if (!Parameters.TryGetValue(index, out var parameter)) return s;
 
-            return Parameters[index] switch
+            return parameter switch
             {
                 Parameter.None => s,
                 Parameter.FaceKeyRegister => Common.GetFaceKey(t),
@@ -140,8 +139,8 @@ namespace Decomp.Core.Operators
                 Parameter.SceneIdentifier => Common.GetCommonIdentifier("scn", Common.Scenes, t),
                 Parameter.FactionIdentifier => Common.GetCommonIdentifier("fac", Common.Factions, t),
                 Parameter.TableauMaterialIdentifier => Common.GetCommonIdentifier("tableau", Common.Tableaus, t),
-                Parameter.QuestIdentifier => Common.GetCommonIdentifier("qst", Common.Factions, t),
-                Parameter.PartyTemplateIdentifier => Common.GetCommonIdentifier("pt", Common.Factions, t),
+                Parameter.QuestIdentifier => Common.GetCommonIdentifier("qst", Common.Quests, t),
+                Parameter.PartyTemplateIdentifier => Common.GetCommonIdentifier("pt", Common.PTemps, t),
                 Parameter.InfoPageIdentifier => Common.GetCommonIdentifier("ip", Common.InfoPages, t),
                 Parameter.SkillIdentifier => Common.GetCommonIdentifier("skl", Common.Skills, t),
                 Parameter.MapIconIdentifier => Common.GetCommonIdentifier("icon", Common.MapIcons, t),
@@ -166,7 +165,7 @@ namespace Decomp.Core.Operators
             };
         }
 
-        public static IEnumerable<Operator> GetCollection(IEnumerable<IGameVersion> versions)
+        public static IEnumerable<Operator> GetCollection(IEnumerable<IGameVersion>? versions)
         {
             if (versions == null) return Enumerable.Empty<Operator>();
             return versions.SelectMany(x => x.GetOperators());

@@ -10,10 +10,10 @@ namespace Decomp.Core
 {
     public enum Mode
     {
-        Caribbean = 3, //Caribbean
-        WarbandScriptEnhancer450 = 2, //Warband v1.173 + WSE
-        WarbandScriptEnhancer320 = 1, //Warband v1.153 + WSE
-        Vanilla = 0 //M&B v1.011/1.010
+        Caribbean = 3,
+        WarbandScriptEnhancer450 = 2,
+        WarbandScriptEnhancer320 = 1,
+        Vanilla = 0
     }
 
     public static class Common
@@ -97,45 +97,41 @@ from ID_troops import *";
 
         public static string GetCommonIdentifier(string prefix, IList<string> array, int index, bool useQuotes = false)
         {
-            if (array == null) throw new ArgumentNullException(nameof(array));
-            if (prefix == null) throw new ArgumentNullException(nameof(prefix));
+            ArgumentNullException.ThrowIfNull(array);
+            ArgumentNullException.ThrowIfNull(prefix);
 
             if (index < 0 || index >= array.Count) return index.ToString(CultureInfo.GetCultureInfo("en-US"));
-            var s = prefix + (prefix.Length > 0 && prefix[prefix.Length - 1] == '_' ? "" : "_") +
-                    array[index];
+            var s = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[index];
             return useQuotes ? "\"" + s + "\"" : s;
         }
 
         public static string GetCommonIdentifier(string prefix, IList<string> array, ulong index, bool useQuotes = false)
         {
-            if (array == null) throw new ArgumentNullException(nameof(array));
-            if (prefix == null) throw new ArgumentNullException(nameof(prefix));
+            ArgumentNullException.ThrowIfNull(array);
+            ArgumentNullException.ThrowIfNull(prefix);
 
             if (index >= (ulong)array.Count) return index.ToString(CultureInfo.GetCultureInfo("en-US"));
-            var s = prefix + (prefix.Length > 0 && prefix[prefix.Length - 1] == '_' ? "" : "_") +
-                    array[(int)index];
+            var s = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[(int)index];
             return useQuotes ? "\"" + s + "\"" : s;
         }
 
         public static string GetCommonIdentifier(string prefix, IReadOnlyList<string> array, int index, bool useQuotes = false)
         {
-            if (array == null) throw new ArgumentNullException(nameof(array));
-            if (prefix == null) throw new ArgumentNullException(nameof(prefix));
+            ArgumentNullException.ThrowIfNull(array);
+            ArgumentNullException.ThrowIfNull(prefix);
 
             if (index < 0 || index >= array.Count) return index.ToString(CultureInfo.GetCultureInfo("en-US"));
-            var s = prefix + (prefix.Length > 0 && prefix[prefix.Length - 1] == '_' ? "" : "_") +
-                    array[index];
+            var s = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[index];
             return useQuotes ? "\"" + s + "\"" : s;
         }
 
         public static string GetCommonIdentifier(string prefix, IReadOnlyList<string> array, ulong index, bool useQuotes = false)
         {
-            if (array == null) throw new ArgumentNullException(nameof(array));
-            if (prefix == null) throw new ArgumentNullException(nameof(prefix));
+            ArgumentNullException.ThrowIfNull(array);
+            ArgumentNullException.ThrowIfNull(prefix);
 
             if (index >= (ulong)array.Count) return index.ToString(CultureInfo.GetCultureInfo("en-US"));
-            var s = prefix + (prefix.Length > 0 && prefix[prefix.Length - 1] == '_' ? "" : "_") +
-                    array[(int)index];
+            var s = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[(int)index];
             return useQuotes ? "\"" + s + "\"" : s;
         }
 
@@ -149,91 +145,38 @@ from ID_troops import *";
         public static string GetParam(ulong lParam)
         {
             ulong lTag = (lParam & 0xFF00000000000000) >> 56;
-            switch (lTag)
+            return lTag switch
             {
-                case 1:
-                    var iReg = (int)lParam;
-                    return "reg" + Convert.ToString(iReg, CultureInfo.GetCultureInfo("en-US"));
-                case 2:
-                    var iVariable = (int)lParam;
-                    if (iVariable < Variables.Count)
-                        return "\"$" + Variables[iVariable] + "\"";
-                    return $"0x{lParam:x16}";
-                case 3:
-                    var iString = (int)lParam;
-                    return iString < Strings.Count ? "\"str_" + Strings[iString] + "\"" : $"0x{lParam:x16}";
-                case 4:
-                    var iItem = (int)lParam;
-                    return iItem < Items.Count ? "\"itm_" + Items[iItem] + "\"" : $"0x{lParam:x16}";
-                case 5:
-                    var iTroop = (int)lParam;
-                    return iTroop < Troops.Count ? "\"trp_" + Troops[iTroop] + "\"" : $"0x{lParam:x16}";
-                case 6:
-                    var iFaction = (int)lParam;
-                    return iFaction < Factions.Count ? "\"fac_" + Factions[iFaction] + "\"" : $"0x{lParam:x16}";
-                case 7:
-                    var iQuest = (int)lParam;
-                    return iQuest < Quests.Count ? "\"qst_" + Quests[iQuest] + "\"" : $"0x{lParam:x16}";
-                case 8:
-                    var iPTemplate = (int)lParam;
-                    return iPTemplate < PTemps.Count ? "\"pt_" + PTemps[iPTemplate] + "\"" : $"0x{lParam:x16}";
-                case 9:
-                    var iParty = (int)lParam;
-                    return iParty < Parties.Count ? "\"p_" + Parties[iParty] + "\"" : $"0x{lParam:x16}";
-                case 10:
-                    var iScene = (int)lParam;
-                    return iScene < Scenes.Count ? "\"scn_" + Scenes[iScene] + "\"" : $"0x{lParam:x16}";
-                case 11:
-                    var iMTemplate = (int)lParam;
-                    return iMTemplate < MissionTemplates.Count ? "\"mt_" + MissionTemplates[iMTemplate] + "\"" : $"0x{lParam:x16}";
-                case 12:
-                    var iMenu = (int)lParam;
-                    return iMenu < Menus.Count ? "\"mnu_" + Menus[iMenu] + "\"" : $"0x{lParam:x16}";
-                case 13:
-                    var iProcedure = (int)lParam;
-                    return iProcedure < Procedures.Count ? "\"script_" + Procedures[iProcedure] + "\"" : $"0x{lParam:x16}";
-                case 14:
-                    var iParticle = (int)lParam;
-                    return iParticle < ParticleSystems.Count ? "\"psys_" + ParticleSystems[iParticle] + "\"" :
-                        $"0x{lParam:x16}";
-                case 15:
-                    var iSceneProp = (int)lParam;
-                    return iSceneProp < SceneProps.Count ? "\"spr_" + SceneProps[iSceneProp] + "\"" : $"0x{lParam:x16}";
-                case 16:
-                    var iSound = (int)lParam;
-                    return iSound < Sounds.Count ? "\"snd_" + Sounds[iSound] + "\"" : $"0x{lParam:x16}";
-                case 17:
-                    return "\":var" + Convert.ToString((int)lParam, CultureInfo.GetCultureInfo("en-US")) + "\"";
-                case 18:
-                    var iIcon = (int)lParam;
-                    return iIcon < MapIcons.Count ? "\"icon_" + MapIcons[iIcon] + "\"" : $"0x{lParam:x16}";
-                case 19:
-                    var iSkill = (int)lParam;
-                    return iSkill < Skills.Count ? "\"skl_" + Skills[iSkill] + "\"" : $"0x{lParam:x16}";
-                case 20:
-                    var iMesh = (int)lParam;
-                    return iMesh < Meshes.Count ? "\"mesh_" + Meshes[iMesh] + "\"" : $"0x{lParam:x16}";
-                case 21:
-                    var iPresentation = (int)lParam;
-                    return iPresentation < Presentations.Count ? "\"prsnt_" + Presentations[iPresentation] + "\"" : $"0x{lParam:x16}";
-                case 22:
-                    var iQuickString = (int)lParam;
-                    return iQuickString < QuickStrings.Count ? "\"@" + QuickStrings[iQuickString] + "\"" : $"0x{lParam:x16}";
-                case 23:
-                    var iTrack = (int)lParam;
-                    return iTrack < Music.Count ? "\"track_" + Music[iTrack] + "\"" : $"0x{lParam:x16}";
-                case 24:
-                    var iTableau = (int)lParam;
-                    return iTableau < Tableaus.Count ? "\"tableau_" + Tableaus[iTableau] + "\"" : $"0x{lParam:x16}";
-                case 25:
-                    var iAnim = (int)lParam;
-                    return iAnim < Animations.Count ? "\"anim_" + Animations[iAnim] + "\"" : $"0x{lParam:x16}";
-                default:
-                    return lParam.ToString(CultureInfo.GetCultureInfo("en-US"));
-            }
+                1 => "reg" + ((int)lParam).ToString(CultureInfo.GetCultureInfo("en-US")),
+                2 => ((int)lParam) < Variables.Count ? "\"$" + Variables[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                3 => ((int)lParam) < Strings.Count ? "\"str_" + Strings[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                4 => ((int)lParam) < Items.Count ? "\"itm_" + Items[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                5 => ((int)lParam) < Troops.Count ? "\"trp_" + Troops[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                6 => ((int)lParam) < Factions.Count ? "\"fac_" + Factions[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                7 => ((int)lParam) < Quests.Count ? "\"qst_" + Quests[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                8 => ((int)lParam) < PTemps.Count ? "\"pt_" + PTemps[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                9 => ((int)lParam) < Parties.Count ? "\"p_" + Parties[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                10 => ((int)lParam) < Scenes.Count ? "\"scn_" + Scenes[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                11 => ((int)lParam) < MissionTemplates.Count ? "\"mt_" + MissionTemplates[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                12 => ((int)lParam) < Menus.Count ? "\"mnu_" + Menus[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                13 => ((int)lParam) < Procedures.Count ? "\"script_" + Procedures[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                14 => ((int)lParam) < ParticleSystems.Count ? "\"psys_" + ParticleSystems[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                15 => ((int)lParam) < SceneProps.Count ? "\"spr_" + SceneProps[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                16 => ((int)lParam) < Sounds.Count ? "\"snd_" + Sounds[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                17 => "\":var" + ((int)lParam).ToString(CultureInfo.GetCultureInfo("en-US")) + "\"",
+                18 => ((int)lParam) < MapIcons.Count ? "\"icon_" + MapIcons[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                19 => ((int)lParam) < Skills.Count ? "\"skl_" + Skills[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                20 => ((int)lParam) < Meshes.Count ? "\"mesh_" + Meshes[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                21 => ((int)lParam) < Presentations.Count ? "\"prsnt_" + Presentations[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                22 => ((int)lParam) < QuickStrings.Count ? "\"@" + QuickStrings[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                23 => ((int)lParam) < Music.Count ? "\"track_" + Music[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                24 => ((int)lParam) < Tableaus.Count ? "\"tableau_" + Tableaus[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                25 => ((int)lParam) < Animations.Count ? "\"anim_" + Animations[(int)lParam] + "\"" : $"0x{lParam:x16}",
+                _ => lParam.ToString(CultureInfo.GetCultureInfo("en-US"))
+            };
         }
 
-        public static string GetTriggerParam(double dblParam) => (int)dblParam switch
+        public static string GetTriggerParam(double dblParam) => ((int)dblParam) switch
         {
             -2 => "ti_on_game_start",
             -5 => "ti_simulate_battle",
@@ -292,12 +235,12 @@ from ID_troops import *";
             _ => dblParam.ToString(CultureInfo.GetCultureInfo("en-US"))
         };
 
-        public static string GetIndentations(int indentation) => new String(' ', Math.Max(indentation, 0) << 1);
+        public static string GetIndentations(int indentation) => new string(' ', Math.Max(indentation, 0) << 1);
 
-        public static void PrintStatement(ref Text fInput, ref Win32FileWriter fOutput, int iRecords, string strDefaultIndentation)
+        public static void PrintStatement(ref Text fInput, ref FileWriter fOutput, int iRecords, string strDefaultIndentation)
         {
-            if (fInput == null) throw new ArgumentNullException(nameof(fInput));
-            if (fOutput == null) throw new ArgumentNullException(nameof(fOutput));
+            ArgumentNullException.ThrowIfNull(fInput);
+            ArgumentNullException.ThrowIfNull(fOutput);
 
             var indentations = 0;
             for (int r = 0; r < iRecords; r++)
@@ -319,30 +262,25 @@ from ID_troops import *";
 
                 var op = FindOperator((int)(iOpCode & 0xFFFF));
 
-                if (iOpCode == 4 || iOpCode == 6 || iOpCode == 7 || iOpCode == 11 || iOpCode == 12 || iOpCode == 15 || iOpCode == 16 || iOpCode == 17 ||
-                    iOpCode == 18)
+                if (iOpCode is 4 or 6 or 7 or 11 or 12 or 15 or 16 or 17 or 18)
                     indentations++;
                 else if (iOpCode == 3)
                     indentations--;
 
-                var strIdentations = iOpCode == 4 || iOpCode == 5 || iOpCode == 6 || iOpCode == 7 || iOpCode == 11 || iOpCode == 12 || iOpCode == 15 || iOpCode == 16 || iOpCode == 17 ||
-                                      iOpCode == 18 ? GetIndentations(indentations - 1) : GetIndentations(indentations);
+                var strIdentations = iOpCode is 4 or 5 or 6 or 7 or 11 or 12 or 15 or 16 or 17 or 18
+                    ? GetIndentations(indentations - 1)
+                    : GetIndentations(indentations);
 
-                string strOpCode = null;
+                string? strOpCode = null;
                 if (strPrefixNeg.Length > 0 && iOpCode >= 30 && iOpCode <= 32)
                 {
-                    switch (iOpCode)
+                    strOpCode = iOpCode switch
                     {
-                        case 30:
-                            strOpCode = "lt";
-                            break;
-                        case 31:
-                            strOpCode = "neq";
-                            break;
-                        case 32:
-                            strOpCode = "le";
-                            break;
-                    }
+                        30 => "lt",
+                        31 => "neq",
+                        32 => "le",
+                        _ => null
+                    };
                     fOutput.Write("{0}{1}({2}{3}", strIdentations, strDefaultIndentation, strPrefixThisOrNext, strOpCode);
                 }
                 else
@@ -589,7 +527,7 @@ from ID_troops import *";
             return lTag == 0;
         }
 
-        public static string GetFaceKey(ulong lFaceKeyCode) => Convert.ToString(lFaceKeyCode, CultureInfo.GetCultureInfo("en-US"));
+        public static string GetFaceKey(ulong lFaceKeyCode) => lFaceKeyCode.ToString(CultureInfo.GetCultureInfo("en-US"));
 
         public static string DecompileTextFlags(uint dwFlag)
         {
@@ -621,7 +559,7 @@ from ID_troops import *";
             2 => "grc_cavalry",
             3 => "grc_infantry",
             9 => "grc_everyone",
-            _ => lClass.ToString(CultureInfo.GetCultureInfo(1033))
+            _ => lClass.ToString(CultureInfo.GetCultureInfo("en-US"))
         };
 
         public static string GetTeamOrder(ulong lOrder) => lOrder switch
@@ -652,7 +590,7 @@ from ID_troops import *";
             23 => "mordr_form_3_row",
             24 => "mordr_form_4_row",
             25 => "mordr_form_5_row",
-            _ => lOrder.ToString(CultureInfo.GetCultureInfo(1033)),
+            _ => lOrder.ToString(CultureInfo.GetCultureInfo("en-US")),
         };
 
         public static string GetPartyBehavior(ulong lBehavior)
@@ -721,7 +659,7 @@ from ID_troops import *";
             return "0x" + color.ToString("X", CultureInfo.GetCultureInfo("en-US"));
         }
 
-        public static string GetAlpha(ulong alpha) => String.Concat("0x", alpha <= 0xFF ? alpha.ToString("X2", CultureInfo.GetCultureInfo("en-US")) : alpha.ToString("X", CultureInfo.GetCultureInfo("en-US")));
+        public static string GetAlpha(ulong alpha) => "0x" + (alpha <= 0xFF ? alpha.ToString("X2", CultureInfo.GetCultureInfo("en-US")) : alpha.ToString("X", CultureInfo.GetCultureInfo("en-US")));
 
         public static string DecompileSortMode(ulong sm) => (sm & 3) switch
         {
@@ -736,11 +674,10 @@ from ID_troops import *";
         public static void GenerateId(string fileOut, IEnumerable<string> content, string prefix = "")
         {
             if (!NeedId || string.IsNullOrEmpty(prefix) || content == null) return;
-            var f = new Win32FileWriter(Path.Combine(OutputPath, fileOut));
-            if (prefix.Length > 0 && prefix[prefix.Length - 1] != '_') prefix += '_';
+            using var f = new FileWriter(Path.Combine(OutputPath, fileOut));
+            if (prefix.Length > 0 && prefix[^1] != '_') prefix += '_';
             var enumerable = content.ToArray();
             for (int i = 0; i < enumerable.Length; i++) f.WriteLine("{0}{1} = {2}", prefix, enumerable[i], i);
-            f.Close();
         }
     }
 }
