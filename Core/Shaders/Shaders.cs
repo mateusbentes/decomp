@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace Decomp.Core.Shaders
 {
@@ -77,6 +78,7 @@ namespace Decomp.Core.Shaders
         /// <param name="shaderBytecode">Compiled shader bytecode</param>
         /// <returns>Disassembled shader code as string</returns>
         /// <exception cref="PlatformNotSupportedException">Thrown when not running on Windows</exception>
+        [SupportedOSPlatform("windows")]
         internal static string DisassembleFxcWithD3DDisassemble(byte[] shaderBytecode)
         {
             if (!IsWindowsPlatform)
@@ -119,7 +121,7 @@ namespace Decomp.Core.Shaders
             }
             finally
             {
-                if (blob != null && IsWindowsPlatform)
+                if (blob != null)
                 {
                     Marshal.FinalReleaseComObject(blob);
                 }
