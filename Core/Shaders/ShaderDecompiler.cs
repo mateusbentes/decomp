@@ -59,12 +59,7 @@ namespace Decomp.Core.Shaders
         /// </summary>
         private static void DecompileTextShader(string inputFile, string outputFile)
         {
-            string? outputDir = Path.GetDirectoryName(outputFile);
-            if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
-
+            EnsureOutputDirectory(outputFile);
             string shaderText = File.ReadAllText(inputFile, Encoding.UTF8);
             File.WriteAllText(outputFile, Header.Shaders + shaderText);
         }
@@ -97,6 +92,7 @@ namespace Decomp.Core.Shaders
 #pragma warning disable CA1416
                 string disassembledCode = Shaders.DisassembleFxcWithD3DDisassemble(shaderBytecode);
 #pragma warning restore CA1416
+                EnsureOutputDirectory(outputFile);
                 File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
             }
             catch (DllNotFoundException ex)
@@ -131,62 +127,71 @@ namespace Decomp.Core.Shaders
         {
             string disassemblerPath = GetOpenGLDisassemblerPath();
 
-            string? outputDir = Path.GetDirectoryName(outputFile);
-            if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
+            EnsureOutputDirectory(outputFile);
 
-            using var process = new Process
+            // Use a temporary file so that spirv-cross writes its output there.
+            // We then read it back, prepend the header, and write the final result
+            // to the requested output path. This avoids reading stale content if
+            // the output file already existed before this call.
+            string tempFile = Path.GetTempFileName();
+            try
             {
-                StartInfo = new ProcessStartInfo
+                using var process = new Process
                 {
-                    FileName = disassemblerPath,
-                    Arguments = $"--es --output \"{outputFile}\" \"{inputFile}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = disassemblerPath,
+                        Arguments = $"--es --output \"{tempFile}\" \"{inputFile}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                    }
+                };
+
+                process.Start();
+
+                // Read both streams concurrently to prevent deadlocks when buffers fill up.
+                string standardOutput = process.StandardOutput.ReadToEnd();
+                string standardError = process.StandardError.ReadToEnd();
+
+                if (!process.WaitForExit(10000))
+                {
+                    process.Kill();
+                    throw new InvalidOperationException(
+                        "SPIRV-Cross process timed out after 10 seconds.");
                 }
-            };
 
-            process.Start();
+                if (process.ExitCode != 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to decompile GLSL shader. Exit code: {process.ExitCode}\n" +
+                        $"Error output: {(string.IsNullOrEmpty(standardError) ? "(none)" : standardError)}");
+                }
 
-            // Read both streams concurrently to prevent deadlocks when buffers fill up.
-            string standardOutput = process.StandardOutput.ReadToEnd();
-            string standardError = process.StandardError.ReadToEnd();
+                // spirv-cross writes to the temp file via --output; fall back to stdout
+                // if the temp file is empty or was not written.
+                string disassembledCode = File.Exists(tempFile) && new FileInfo(tempFile).Length > 0
+                    ? File.ReadAllText(tempFile)
+                    : standardOutput;
 
-            if (!process.WaitForExit(10000))
-            {
-                process.Kill();
-                throw new InvalidOperationException(
-                    "SPIRV-Cross process timed out after 10 seconds.");
+                File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
             }
-
-            if (process.ExitCode != 0)
+            finally
             {
-                throw new InvalidOperationException(
-                    $"Failed to decompile GLSL shader. Exit code: {process.ExitCode}\n" +
-                    $"Error output: {(string.IsNullOrEmpty(standardError) ? "(none)" : standardError)}");
+                // Clean up the temporary file regardless of success or failure.
+                if (File.Exists(tempFile))
+                {
+                    try { File.Delete(tempFile); } catch { /* best-effort cleanup */ }
+                }
             }
-
-            // spirv-cross writes to the output file directly via --output; read it back.
-            string disassembledCode = File.Exists(outputFile)
-                ? File.ReadAllText(outputFile)
-                : standardOutput;
-
-            File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
         }
 
         private static void DecompileFxcWithDxbcDisassembler(string inputFile, string outputFile)
         {
             string disassemblerPath = GetDirectXDisassemblerPath();
 
-            string? outputDir = Path.GetDirectoryName(outputFile);
-            if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
+            EnsureOutputDirectory(outputFile);
 
             using var process = new Process
             {
@@ -222,6 +227,15 @@ namespace Decomp.Core.Shaders
             }
 
             File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
+        }
+
+        private static void EnsureOutputDirectory(string outputFile)
+        {
+            string? outputDir = Path.GetDirectoryName(outputFile);
+            if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+            }
         }
 
         private static string GetOpenGLDisassemblerPath()
