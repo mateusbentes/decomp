@@ -188,6 +188,14 @@ namespace Decomp.Core.Shaders
             ID3DXBuffer** ppCompilationErrors
         );
 
+        [DllImport("d3dx9_43.dll", EntryPoint = "D3DXDisassembleShader", CallingConvention = CallingConvention.StdCall), SuppressUnmanagedCodeSecurity]
+        private static extern int D3DXDisassembleShader(
+            IntPtr pShader,
+            [MarshalAs(UnmanagedType.Bool)]bool EnableColorCode,
+            string? pComments,
+            ID3DXBuffer** ppDisassembly
+        );
+
         [DllImport("d3dx9_43.dll", CallingConvention = CallingConvention.StdCall), SuppressUnmanagedCodeSecurity]
         private static extern int D3DXDisassembleEffect(
             ID3DXEffect* pEffect,
@@ -219,7 +227,7 @@ namespace Decomp.Core.Shaders
         {
             if (!IsWindowsPlatform)
             {
-                throw new PlatformNotSupportedException("A inicialização do Direct3D só é suportada no Windows.");
+                throw new PlatformNotSupportedException("Direct3D initialization is only supported on Windows.");
             }
 
             _wndProc = WindowProc;
@@ -265,7 +273,7 @@ namespace Decomp.Core.Shaders
         {
             if (!IsWindowsPlatform)
             {
-                throw new PlatformNotSupportedException("A decompilação de shaders via Direct3D só é suportada no Windows. Use ShaderDecompiler.Decompile() em outras plataformas.");
+                throw new PlatformNotSupportedException("Direct3D shader decompilation is only supported on Windows. Use ShaderDecompiler.Decompile() on other platforms.");
             }
 
             Initialize();
@@ -291,6 +299,52 @@ namespace Decomp.Core.Shaders
             Release();
         }
 
+        public static void DecompileFxc(string inputFile, string outputFile)
+        {
+            if (!IsWindowsPlatform)
+            {
+                throw new PlatformNotSupportedException("Direct3D .fxc decompilation is only supported on Windows.");
+            }
+
+            Initialize();
+
+            // Read the compiled .fxc file into a byte array
+            byte[] fxcData = File.ReadAllBytes(inputFile);
+            fixed (byte* pFxcData = fxcData)
+            {
+                ID3DXBuffer* pDisassembler = null;
+                ID3DXBuffer* pErrorBuffer = null;
+
+                // Disassemble the compiled shader
+                int hr = D3DXDisassembleShader((IntPtr)pFxcData, false, null, &pDisassembler);
+                if (hr < 0)
+                {
+                    if (pErrorBuffer != null)
+                    {
+                        string errorMsg = Marshal.PtrToStringAnsi(ID3DXBuffer_GetBufferPointer(pErrorBuffer));
+                        Marshal.Release((IntPtr)pErrorBuffer);
+                        throw new InvalidOperationException($"Failed to disassemble .fxc file. Error: {errorMsg}");
+                    }
+                    throw new InvalidOperationException($"Failed to disassemble .fxc file. HRESULT: 0x{hr:X8}");
+                }
+
+                var sShaderSource = Marshal.PtrToStringAnsi(ID3DXBuffer_GetBufferPointer(pDisassembler));
+
+                string? outputDir = Path.GetDirectoryName(outputFile);
+                if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+                {
+                    Directory.CreateDirectory(outputDir);
+                }
+
+                File.WriteAllText(outputFile, Header.Shaders + sShaderSource);
+
+                if (pDisassembler != null) Marshal.Release((IntPtr)pDisassembler);
+                if (pErrorBuffer != null) Marshal.Release((IntPtr)pErrorBuffer);
+            }
+
+            Release();
+        }
+
         private static IntPtr WindowProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam)
         {
             switch (uMsg)
@@ -305,9 +359,21 @@ namespace Decomp.Core.Shaders
 
         private static void Release()
         {
-            Marshal.Release((IntPtr)g_D3DDevice);
-            Marshal.Release((IntPtr)g_D3D);
-            DestroyWindow(g_hWnd);
+            if (g_D3DDevice != null)
+            {
+                Marshal.Release((IntPtr)g_D3DDevice);
+                g_D3DDevice = null;
+            }
+            if (g_D3D != null)
+            {
+                Marshal.Release((IntPtr)g_D3D);
+                g_D3D = null;
+            }
+            if (g_hWnd != IntPtr.Zero)
+            {
+                DestroyWindow(g_hWnd);
+                g_hWnd = IntPtr.Zero;
+            }
             UnregisterClass(g_szClassName, GetModuleHandle(IntPtr.Zero));
         }
     }
