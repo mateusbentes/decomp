@@ -62,6 +62,10 @@ namespace Decomp.Core.Shaders
                     File.WriteAllText(outputFile, disassembledCode);
                     return;
                 }
+                catch (DllNotFoundException)
+                {
+                    // DLL not found — fall through to the cross-platform disassembler.
+                }
                 catch (InvalidOperationException ex) when (ex.Message.Contains("d3dcompiler_47.dll"))
                 {
                     // DLL not found — fall through to the cross-platform disassembler.

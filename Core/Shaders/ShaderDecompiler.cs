@@ -8,16 +8,16 @@ namespace Decomp.Core.Shaders
 {
     public static class ShaderDecompiler
     {
+        /// <summary>
+        /// Decompiles a shader file to a human-readable text format.
+        /// Supports .vsh and .psh (DirectX plain-text assembly) and
+        /// .fxc (DirectX binary bytecode) used by the Taleworlds classic engine.
+        /// </summary>
         public static void Decompile(string inputFile, string outputFile, string? gameVersion = null)
         {
             if (!File.Exists(inputFile))
             {
                 throw new FileNotFoundException($"Shader file not found: {inputFile}");
-            }
-
-            if (string.IsNullOrEmpty(gameVersion))
-            {
-                gameVersion = "VanillaWarband";
             }
 
             string extension = Path.GetExtension(inputFile).ToLowerInvariant();
@@ -31,26 +31,15 @@ namespace Decomp.Core.Shaders
                 return;
             }
 
-            bool isFxcFile = extension.Equals(".fxc", StringComparison.OrdinalIgnoreCase);
-            bool isGlslFile = extension.Equals(".glsl", StringComparison.OrdinalIgnoreCase);
-            bool isWarbandShader = gameVersion.Equals("VanillaWarband", StringComparison.OrdinalIgnoreCase) ||
-                                   gameVersion.Equals("WSE320", StringComparison.OrdinalIgnoreCase) ||
-                                   gameVersion.Equals("WSE450", StringComparison.OrdinalIgnoreCase);
-
-            if (isFxcFile)
+            if (extension.Equals(".fxc", StringComparison.OrdinalIgnoreCase))
             {
                 DecompileFxc(inputFile, outputFile);
+                return;
             }
-            else if (isGlslFile || (isWarbandShader && IsOpenGLShader(inputFile)))
-            {
-                DecompileGlslWithSpirvCross(inputFile, outputFile);
-            }
-            else
-            {
-                throw new NotSupportedException(
-                    $"Shader decompilation for file type '{extension}' is not supported. " +
-                    "Supported formats: .vsh/.psh (DirectX text assembly), .fxc (DirectX binary), .glsl (OpenGL).");
-            }
+
+            throw new NotSupportedException(
+                $"Shader decompilation for file type '{extension}' is not supported. " +
+                "Supported formats: .vsh/.psh (DirectX text assembly), .fxc (DirectX binary bytecode).");
         }
 
         /// <summary>
@@ -74,6 +63,10 @@ namespace Decomp.Core.Shaders
                 {
                     DecompileFxcWithD3DDisassemble(inputFile, outputFile);
                     return;
+                }
+                catch (DllNotFoundException)
+                {
+                    // DLL not found — fall through to the cross-platform disassembler.
                 }
                 catch (InvalidOperationException ex) when (ex.Message.Contains("d3dcompiler_47.dll"))
                 {
@@ -105,105 +98,6 @@ namespace Decomp.Core.Shaders
             {
                 throw new InvalidOperationException(
                     $"Failed to disassemble .fxc file using D3DDisassemble: {ex.Message}", ex);
-            }
-        }
-
-        /// <summary>
-        /// Detects whether a file is an OpenGL shader by inspecting its content.
-        /// Checks the first few lines for common GLSL markers rather than only
-        /// the first line, which makes detection more robust.
-        /// </summary>
-        private static bool IsOpenGLShader(string inputFile)
-        {
-            try
-            {
-                using var reader = new StreamReader(inputFile, Encoding.UTF8);
-                // Check the first 5 lines for GLSL markers to be more robust
-                // than only inspecting the very first line.
-                for (int i = 0; i < 5; i++)
-                {
-                    string? line = reader.ReadLine();
-                    if (line == null) break;
-                    string trimmed = line.TrimStart();
-                    if (trimmed.StartsWith("#version", StringComparison.OrdinalIgnoreCase) ||
-                        trimmed.Contains("GLSL", StringComparison.OrdinalIgnoreCase) ||
-                        trimmed.StartsWith("//", StringComparison.Ordinal) && trimmed.Contains("OpenGL", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private static void DecompileGlslWithSpirvCross(string inputFile, string outputFile)
-        {
-            string disassemblerPath = GetOpenGLDisassemblerPath();
-
-            EnsureOutputDirectory(outputFile);
-
-            // Use a temporary file so that spirv-cross writes its output there.
-            // We then read it back, prepend the header, and write the final result
-            // to the requested output path. This avoids reading stale content if
-            // the output file already existed before this call.
-            string tempFile = Path.GetTempFileName();
-            try
-            {
-                using var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = disassemblerPath,
-                        // Do NOT pass --es: that forces OpenGL ES profile which is
-                        // incorrect for desktop GLSL shaders used by the M&B engine.
-                        // Let spirv-cross infer the correct profile from the shader.
-                        Arguments = $"--output \"{tempFile}\" \"{inputFile}\"",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                    }
-                };
-
-                process.Start();
-
-                // Read both streams concurrently to prevent deadlocks when buffers fill up.
-                string standardOutput = process.StandardOutput.ReadToEnd();
-                string standardError = process.StandardError.ReadToEnd();
-
-                if (!process.WaitForExit(10000))
-                {
-                    process.Kill();
-                    throw new InvalidOperationException(
-                        "SPIRV-Cross process timed out after 10 seconds.");
-                }
-
-                if (process.ExitCode != 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Failed to decompile GLSL shader. Exit code: {process.ExitCode}\n" +
-                        $"Error output: {(string.IsNullOrEmpty(standardError) ? "(none)" : standardError)}");
-                }
-
-                // spirv-cross writes to the temp file via --output; fall back to stdout
-                // if the temp file is empty or was not written.
-                string disassembledCode = File.Exists(tempFile) && new FileInfo(tempFile).Length > 0
-                    ? File.ReadAllText(tempFile)
-                    : standardOutput;
-
-                File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
-            }
-            finally
-            {
-                // Clean up the temporary file regardless of success or failure.
-                if (File.Exists(tempFile))
-                {
-                    try { File.Delete(tempFile); } catch { /* best-effort cleanup */ }
-                }
             }
         }
 
@@ -256,27 +150,6 @@ namespace Decomp.Core.Shaders
             {
                 Directory.CreateDirectory(outputDir);
             }
-        }
-
-        private static string GetOpenGLDisassemblerPath()
-        {
-            string[] absolutePaths =
-            {
-                "/usr/bin/spirv-cross",
-                "/usr/local/bin/spirv-cross",
-                Path.Combine(AppContext.BaseDirectory, "spirv-cross"),
-            };
-
-            foreach (string path in absolutePaths)
-            {
-                if (File.Exists(path))
-                {
-                    return path;
-                }
-            }
-
-            // Fall back to letting the OS resolve via PATH.
-            return "spirv-cross";
         }
 
         private static string GetDirectXDisassemblerPath()
