@@ -21,8 +21,8 @@ namespace DecompilerCLI
             }
 
             string inputFile = args[0];
-            string outputFile = args.Length > 1 ? args[1] : null;
-            string gameVersion = args.Length > 2 ? args[2] : "VanillaWarband";
+            string? outputFile = args.Length > 1 ? args[1] : null;
+            string? gameVersion = args.Length > 2 ? args[2] : "VanillaWarband";
 
             try
             {
