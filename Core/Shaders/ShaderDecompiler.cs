@@ -29,7 +29,7 @@ namespace Decomp.Core.Shaders
 
             if (isFxcFile)
             {
-                DecompileFxcWithDxbcDisassembler(inputFile, outputFile);
+                DecompileFxc(inputFile, outputFile);
             }
             else if (isGlslFile || (isWarbandShader && IsOpenGLShader(inputFile)))
             {
@@ -40,6 +40,33 @@ namespace Decomp.Core.Shaders
                 throw new NotSupportedException(
                     $"Shader decompilation for file type '{extension}' is not supported. " +
                     "Supported formats: .fxc (DirectX), .glsl (OpenGL).");
+            }
+        }
+
+        private static void DecompileFxc(string inputFile, string outputFile)
+        {
+            if (Shaders.IsWindowsPlatform)
+            {
+                DecompileFxcWithD3DDisassemble(inputFile, outputFile);
+            }
+            else
+            {
+                DecompileFxcWithDxbcDisassembler(inputFile, outputFile);
+            }
+        }
+
+        private static void DecompileFxcWithD3DDisassemble(string inputFile, string outputFile)
+        {
+            try
+            {
+                byte[] shaderBytecode = File.ReadAllBytes(inputFile);
+                string disassembledCode = Shaders.DisassembleFxcWithD3DDisassemble(shaderBytecode);
+                File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to disassemble .fxc file using D3DDisassemble: {ex.Message}", ex);
             }
         }
 
