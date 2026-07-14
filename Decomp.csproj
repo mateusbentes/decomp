@@ -6,27 +6,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UseWPF>false</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks> 
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Application.xaml" />
-    <Content Include="Windows\AboutWindow.xaml" />
-    <Content Include="Windows\AutoCompleteTextBox.xaml" />
-    <Content Include="Windows\ErrorWindow.xaml" />
-    <Content Include="Windows\HelpWindow.xaml" />
-    <Content Include="Windows\Styles\VS2012WindowStyle.xaml" />
-  </ItemGroup>
-
-</Project>
+  </Project>
