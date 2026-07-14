@@ -49,6 +49,7 @@ namespace Decomp.Core.Shaders
                     "D3DDisassemble is only available on Windows.");
             }
 
+            ID3DBlob? blob = null;
             try
             {
                 int result = D3DDisassemble(
@@ -56,7 +57,7 @@ namespace Decomp.Core.Shaders
                     shaderBytecode.Length,
                     0,
                     null,
-                    out ID3DBlob blob);
+                    out blob);
 
                 if (result < 0)
                 {
@@ -78,6 +79,13 @@ namespace Decomp.Core.Shaders
             {
                 throw new InvalidOperationException(
                     "Failed to disassemble shader using D3DDisassemble.", ex);
+            }
+            finally
+            {
+                if (blob != null)
+                {
+                    Marshal.ReleaseComObject(blob);
+                }
             }
         }
     }

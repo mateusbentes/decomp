@@ -120,24 +120,31 @@ namespace Decomp.Core.Shaders
                 }
             };
 
-            process.Start();
-            string standardError = process.StandardError.ReadToEnd();
-            if (!process.WaitForExit(10000))
+            try
             {
-                process.Kill();
-                throw new InvalidOperationException(
-                    $"SPIRV-Cross process timed out after 10 seconds.");
-            }
+                process.Start();
+                string standardError = process.StandardError.ReadToEnd();
+                if (!process.WaitForExit(10000))
+                {
+                    process.Kill();
+                    throw new InvalidOperationException(
+                        $"SPIRV-Cross process timed out after 10 seconds.");
+                }
 
-            if (process.ExitCode != 0)
+                if (process.ExitCode != 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to decompile GLSL shader. Exit code: {process.ExitCode}\n" +
+                        $"Error output: {standardError}");
+                }
+
+                string disassembledCode = File.ReadAllText(outputFile);
+                File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
+            }
+            finally
             {
-                throw new InvalidOperationException(
-                    $"Failed to decompile GLSL shader. Exit code: {process.ExitCode}\n" +
-                    $"Error output: {standardError}");
+                process.Dispose();
             }
-
-            string disassembledCode = File.ReadAllText(outputFile);
-            File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
         }
 
         private static void DecompileFxcWithDxbcDisassembler(string inputFile, string outputFile)
@@ -169,24 +176,31 @@ namespace Decomp.Core.Shaders
                 }
             };
 
-            process.Start();
-            string disassembledCode = process.StandardOutput.ReadToEnd();
-            string standardError = process.StandardError.ReadToEnd();
-            if (!process.WaitForExit(10000))
+            try
             {
-                process.Kill();
-                throw new InvalidOperationException(
-                    $"dxbc-disassembler process timed out after 10 seconds.");
-            }
+                process.Start();
+                string disassembledCode = process.StandardOutput.ReadToEnd();
+                string standardError = process.StandardError.ReadToEnd();
+                if (!process.WaitForExit(10000))
+                {
+                    process.Kill();
+                    throw new InvalidOperationException(
+                        $"dxbc-disassembler process timed out after 10 seconds.");
+                }
 
-            if (process.ExitCode != 0)
+                if (process.ExitCode != 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to disassemble .fxc file. Exit code: {process.ExitCode}\n" +
+                        $"Error output: {standardError}");
+                }
+
+                File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
+            }
+            finally
             {
-                throw new InvalidOperationException(
-                    $"Failed to disassemble .fxc file. Exit code: {process.ExitCode}\n" +
-                    $"Error output: {standardError}");
+                process.Dispose();
             }
-
-            File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
         }
 
         private static string GetOpenGLDisassemblerPath()
