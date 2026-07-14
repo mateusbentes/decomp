@@ -12,7 +12,7 @@ namespace Decomp.Core
         {
             if(!File.Exists(Path.Combine(Common.InputPath, "actions.txt"))) return Array.Empty<string>();
 
-            var fId = new Win32FileReader(Path.Combine(Common.InputPath, "actions.txt"));
+            var fId = new FileReader(Path.Combine(Common.InputPath, "actions.txt"));
             var n = Convert.ToInt32(fId.ReadLine(), CultureInfo.GetCultureInfo(1033));
             var aAnimations = new string[n];
             for (int i = 0; i < n; i++)
@@ -163,7 +163,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fActions = new Text(Path.Combine(Common.InputPath, "actions.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_animations.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_animations.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Animations);
             var iActions = fActions.GetInt();

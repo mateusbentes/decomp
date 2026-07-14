@@ -391,7 +391,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fItems = new Text(Path.Combine(Common.InputPath, "item_kinds1.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_items.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_items.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Items);
             fItems.GetString();

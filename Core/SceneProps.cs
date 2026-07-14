@@ -90,7 +90,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fSceneProps = new Text(Path.Combine(Common.InputPath, "scene_props.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_scene_props.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_scene_props.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.SceneProps);
             fSceneProps.GetString();

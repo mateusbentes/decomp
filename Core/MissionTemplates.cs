@@ -137,7 +137,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fMissionTemplates = new Text(Path.Combine(Common.InputPath, "mission_templates.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_mission_templates.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_mission_templates.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.MissionTemplates);
             fMissionTemplates.GetString();

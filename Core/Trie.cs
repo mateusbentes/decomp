@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Decomp.Core
@@ -15,7 +15,7 @@ namespace Decomp.Core
         {
             Next = new SimpleTrieNode<T>[27];
             Leaf = false;
-            Value = default;
+            Value = default!;
         }
     }
 
@@ -25,7 +25,7 @@ namespace Decomp.Core
 
         public SimpleTrie() => _root = new SimpleTrieNode<T>();
 
-        public SimpleTrie(IEnumerable<KeyValuePair<string, T>> enumerable)
+        public SimpleTrie(IEnumerable<KeyValuePair<string, T>>? enumerable)
         {
             _root = new SimpleTrieNode<T>();
 
@@ -33,8 +33,8 @@ namespace Decomp.Core
             foreach (var pair in enumerable) Add(pair);
         }
 
-        public void Add(KeyValuePair<string, T> pair) => Add(_root, pair.Key.ToUpperInvariant(), pair.Value, 0);
-        public void Add(string key, T value) => Add(_root, key?.ToUpperInvariant(), value, 0);
+        public void Add(KeyValuePair<string, T> pair) => Add(_root, pair.Key?.ToUpperInvariant() ?? string.Empty, pair.Value, 0);
+        public void Add(string? key, T value) => Add(_root, key?.ToUpperInvariant() ?? string.Empty, value, 0);
 
         private static void Add(SimpleTrieNode<T> node, string s, T value, int index)
         {
@@ -47,9 +47,9 @@ namespace Decomp.Core
                     return;
                 }
 
-                var nextIndex = Char.IsLetter(s, index) ? s[index] - 'A' : 26;
+                var nextIndex = char.IsLetter(s[index]) ? s[index] - 'A' : 26;
                 var b = node.Next[nextIndex];
-                if (b != null) node = b; 
+                if (b != null) node = b;
                 else
                 {
                     var go = new SimpleTrieNode<T>();
@@ -60,7 +60,7 @@ namespace Decomp.Core
             }
         }
 
-        public bool ContainsKey(string key)
+        public bool ContainsKey(string? key)
         {
             if (key == null) return false;
 
@@ -69,58 +69,58 @@ namespace Decomp.Core
             for (int i = 0; i < s.Length; i++)
             {
                 if (b == null) return false;
-                b = b.Next[Char.IsLetter(s, i) ? s[i] - 'A' : 26];
+                b = b.Next[char.IsLetter(s[i]) ? s[i] - 'A' : 26];
             }
 
             return b?.Leaf ?? false;
         }
 
-        public T GetValue(string key)
+        public T GetValue(string? key)
         {
-            if (key == null) return default;
+            if (key == null) return default!;
 
             var b = _root;
             var s = key.ToUpperInvariant();
             for (int i = 0; i < s.Length; i++)
             {
-                if (b == null) return default;
-                b = b.Next[Char.IsLetter(s, i) ? s[i] - 'A' : 26];
+                if (b == null) return default!;
+                b = b.Next[char.IsLetter(s[i]) ? s[i] - 'A' : 26];
             }
 
-            return b == null ? default : b.Leaf ? b.Value : default;
+            return b?.Leaf == true ? b.Value : default!;
         }
 
-        public bool TryGetValue(string key, out T value)
+        public bool TryGetValue(string? key, out T value)
         {
             if (key == null)
             {
-                value = default;
+                value = default!;
                 return false;
             }
 
             var b = _root;
             var s = key.ToUpperInvariant();
-            value = default;
+            value = default!;
             for (int i = 0; i < s.Length; i++)
             {
                 if (b == null) return false;
-                b = b.Next[Char.IsLetter(s, i) ? s[i] - 'A' : 26];
+                b = b.Next[char.IsLetter(s[i]) ? s[i] - 'A' : 26];
             }
 
             if (b == null) return false;
-            value = b.Leaf ? b.Value : default;
-            return true;
+            value = b.Leaf ? b.Value : default!;
+            return b.Leaf;
         }
 
-        public T this[string key]
+        public T this[string? key]
         {
-            set => Add(new KeyValuePair<string, T>(key, value));
+            set => Add(new KeyValuePair<string, T>(key ?? string.Empty, value));
             get => GetValue(key);
         }
 
         public void Clear() => _root = new SimpleTrieNode<T>();
 
-        public bool Remove(string key)
+        public bool Remove(string? key)
         {
             if (key == null) return false;
 
@@ -129,11 +129,11 @@ namespace Decomp.Core
             for (int i = 0; i < s.Length; i++)
             {
                 if (b == null) return false;
-                b = b.Next[Char.IsLetter(s, i) ? s[i] - 'A' : 26];
+                b = b.Next[char.IsLetter(s[i]) ? s[i] - 'A' : 26];
             }
 
             if (b == null) return false;
-            if (b.Leaf == false) return false;
+            if (!b.Leaf) return false;
             b.Leaf = false;
             return true;
         }

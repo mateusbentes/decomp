@@ -84,7 +84,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fParties = new Text(Path.Combine(Common.InputPath, "parties.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_parties.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_parties.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Parties);
             fParties.GetString();

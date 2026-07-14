@@ -55,7 +55,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fPresentations = new Text(Path.Combine(Common.InputPath, "presentations.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_presentations.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_presentations.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Presentations);
             fPresentations.GetString();

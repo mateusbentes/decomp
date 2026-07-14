@@ -12,7 +12,7 @@ namespace Decomp.Core
         {
             if (!File.Exists(Path.Combine(Common.InputPath, "music.txt"))) return Array.Empty<string>();
 
-            var fId = new Win32FileReader(Path.Combine(Common.InputPath, "music.txt"));
+            var fId = new FileReader(Path.Combine(Common.InputPath, "music.txt"));
             int n = Convert.ToInt32(fId.ReadLine(), CultureInfo.GetCultureInfo("en-US"));
             var aMusic = new string[n];
             for (int i = 0; i < n; i++)
@@ -69,7 +69,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fMusic = new Text(Path.Combine(Common.InputPath, "music.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_music.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_music.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Music);
             var iTracks = fMusic.GetInt();

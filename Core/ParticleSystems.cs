@@ -53,7 +53,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fParticles = new Text(Path.Combine(Common.InputPath, "particle_systems.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_particle_systems.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_particle_systems.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.ParticleSystems);
             fParticles.GetString();

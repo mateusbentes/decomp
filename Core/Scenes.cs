@@ -59,7 +59,7 @@ namespace Decomp.Core
         public static void Decompile()
         {
             var fScenes = new Text(Path.Combine(Common.InputPath, "scenes.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_scenes.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_scenes.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Scenes);
             fScenes.GetString();
