@@ -107,7 +107,7 @@ namespace Decomp.Core.Shaders
                 Directory.CreateDirectory(outputDir);
             }
 
-            var process = new Process
+            using var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -122,7 +122,12 @@ namespace Decomp.Core.Shaders
 
             process.Start();
             string standardError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
+            if (!process.WaitForExit(10000))
+            {
+                process.Kill();
+                throw new InvalidOperationException(
+                    $"SPIRV-Cross process timed out after 10 seconds.");
+            }
 
             if (process.ExitCode != 0)
             {
@@ -151,7 +156,7 @@ namespace Decomp.Core.Shaders
                 Directory.CreateDirectory(outputDir);
             }
 
-            var process = new Process
+            using var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -167,7 +172,12 @@ namespace Decomp.Core.Shaders
             process.Start();
             string disassembledCode = process.StandardOutput.ReadToEnd();
             string standardError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
+            if (!process.WaitForExit(10000))
+            {
+                process.Kill();
+                throw new InvalidOperationException(
+                    $"dxbc-disassembler process timed out after 10 seconds.");
+            }
 
             if (process.ExitCode != 0)
             {
