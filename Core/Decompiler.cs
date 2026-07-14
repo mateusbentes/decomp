@@ -68,10 +68,16 @@ namespace Decomp.Core
 
                     for (int i = 0; i < iCodeSize; i++)
                     {
-                        int iOpCode = text.GetInt();
-                        if (!operators.TryGetValue(iOpCode, out var op))
+                        // Read opcode as ulong to correctly handle the full 64-bit
+                        // values used by the Taleworlds classic engine. The opcode
+                        // itself fits in an int, but parameters may be large unsigned
+                        // 64-bit numbers (e.g. item flags, face codes).
+                        ulong iOpCode = text.GetUInt64();
+                        int iOpCodeInt = (int)(iOpCode & 0xFFFFFFFF);
+
+                        if (!operators.TryGetValue(iOpCodeInt, out var op))
                         {
-                            output.WriteLine("\tunknown_opcode_{0}", iOpCode);
+                            output.WriteLine("\tunknown_opcode_{0}", iOpCodeInt);
                             continue;
                         }
 
@@ -80,7 +86,9 @@ namespace Decomp.Core
 
                         for (int p = 0; p < iNumParams; p++)
                         {
-                            int iParam = text.GetInt();
+                            // Parameters must be read as ulong to avoid truncating
+                            // large values such as item capability flags or face codes.
+                            ulong iParam = text.GetUInt64();
                             output.Write(" {0}", op.GetParameter(p, iParam.ToString()));
                         }
                         output.WriteLine();

@@ -108,14 +108,31 @@ namespace Decomp.Core.Shaders
             }
         }
 
+        /// <summary>
+        /// Detects whether a file is an OpenGL shader by inspecting its content.
+        /// Checks the first few lines for common GLSL markers rather than only
+        /// the first line, which makes detection more robust.
+        /// </summary>
         private static bool IsOpenGLShader(string inputFile)
         {
             try
             {
                 using var reader = new StreamReader(inputFile, Encoding.UTF8);
-                string firstLine = reader.ReadLine() ?? string.Empty;
-                return firstLine.StartsWith("#version", StringComparison.OrdinalIgnoreCase) ||
-                       firstLine.Contains("GLSL", StringComparison.OrdinalIgnoreCase);
+                // Check the first 5 lines for GLSL markers to be more robust
+                // than only inspecting the very first line.
+                for (int i = 0; i < 5; i++)
+                {
+                    string? line = reader.ReadLine();
+                    if (line == null) break;
+                    string trimmed = line.TrimStart();
+                    if (trimmed.StartsWith("#version", StringComparison.OrdinalIgnoreCase) ||
+                        trimmed.Contains("GLSL", StringComparison.OrdinalIgnoreCase) ||
+                        trimmed.StartsWith("//", StringComparison.Ordinal) && trimmed.Contains("OpenGL", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
             catch
             {
@@ -141,7 +158,10 @@ namespace Decomp.Core.Shaders
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = disassemblerPath,
-                        Arguments = $"--es --output \"{tempFile}\" \"{inputFile}\"",
+                        // Do NOT pass --es: that forces OpenGL ES profile which is
+                        // incorrect for desktop GLSL shaders used by the M&B engine.
+                        // Let spirv-cross infer the correct profile from the shader.
+                        Arguments = $"--output \"{tempFile}\" \"{inputFile}\"",
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         UseShellExecute = false,
