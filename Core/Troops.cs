@@ -133,14 +133,14 @@ namespace Decomp.Core
                 };
             }
             
-            var lines = Win32FileReader.ReadAllLines(Path.Combine(Common.InputPath, "Data", "item_modifiers.txt"));
+            var lines = FileReader.ReadAllLines(Path.Combine(Common.InputPath, "Data", "item_modifiers.txt"));
             return lines.Select(x => x.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()).ToList();
         }
 
         public static void Decompile()
         {
             var fTroops = new Text(Path.Combine(Common.InputPath, "troops.txt"));
-            var fSource = new Win32FileWriter(Path.Combine(Common.OutputPath, "module_troops.py"));
+            var fSource = new FileWriter(Path.Combine(Common.OutputPath, "module_troops.py"));
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Troops);
 
