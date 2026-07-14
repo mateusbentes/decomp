@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Decomp.Core;
 
 namespace DecompilerCLI
@@ -8,18 +9,18 @@ namespace DecompilerCLI
     {
         static int Main(string[] args)
         {
-            if (args.Length == 0)
-            {
-                PrintUsage();
-                return 1;
-            }
-
-            string inputPath = args[0];
-            string? outputPath = args.Length > 1 ? args[1] : null;
-            string? gameVersion = args.Length > 2 ? args[2] : null;
-
             try
             {
+                if (args.Length == 0)
+                {
+                    PrintUsage();
+                    return 1;
+                }
+
+                string inputPath = NormalizePath(args[0]);
+                string? outputPath = args.Length > 1 ? NormalizePath(args[1]) : null;
+                string? gameVersion = args.Length > 2 ? args[2] : null;
+
                 if (!File.Exists(inputPath) && !Directory.Exists(inputPath))
                 {
                     Console.Error.WriteLine($"Error: Input path '{inputPath}' does not exist.");
@@ -41,6 +42,10 @@ namespace DecompilerCLI
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error during decompilation: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.Error.WriteLine($"Details: {ex.InnerException.Message}");
+                }
                 return 1;
             }
         }
@@ -61,14 +66,22 @@ namespace DecompilerCLI
             int processedFiles = 0;
             int failedFiles = 0;
 
+            Console.WriteLine($"Starting decompilation of {files.Length} files...");
+
             foreach (string file in files)
             {
                 try
                 {
+                    if (!IsSupportedFileType(file))
+                    {
+                        continue;
+                    }
+
                     string outputFile = Path.Combine(
                         outputPath,
                         Path.GetFileNameWithoutExtension(file) + ".txt");
 
+                    Console.WriteLine($"Processing: {Path.GetFileName(file)}");
                     Decompiler.Decompile(file, outputFile, gameVersion);
                     processedFiles++;
                 }
@@ -121,6 +134,7 @@ namespace DecompilerCLI
 
             try
             {
+                Console.WriteLine($"Decompiling {Path.GetFileName(inputPath)}...");
                 Decompiler.Decompile(inputPath, outputFile, gameVersion);
                 Console.WriteLine($"Decompilation complete: '{outputFile}'");
                 return 0;
@@ -138,13 +152,43 @@ namespace DecompilerCLI
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error: Failed to decompile '{inputPath}': {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.Error.WriteLine($"Details: {ex.InnerException.Message}");
+                }
                 return 1;
+            }
+        }
+
+        private static bool IsSupportedFileType(string filePath)
+        {
+            string extension = Path.GetExtension(filePath).ToLowerInvariant();
+            return extension is ".txt" or ".vsh" or ".psh" or ".fxc" or ".glsl";
+        }
+
+        private static string NormalizePath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return path;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return path.Replace('/', '\\');
+            }
+            else
+            {
+                return path.Replace('\\', '/');
             }
         }
 
         private static void PrintUsage()
         {
+            Console.WriteLine("Warband Module Decompiler - Command Line Interface");
+            Console.WriteLine("==================================================");
+            Console.WriteLine();
             Console.WriteLine("Usage: DecompilerCLI <input_file_or_folder> [output_file_or_folder] [game_version]");
+            Console.WriteLine();
+            Console.WriteLine("Supported platforms: Windows, macOS, Linux");
             Console.WriteLine();
             Console.WriteLine("Supported game versions:");
             Console.WriteLine("  VanillaClassic    - Mount & Blade Classic");
@@ -155,10 +199,11 @@ namespace DecompilerCLI
             Console.WriteLine("  WSE450            - Warband Script Enhancer 4.5.0");
             Console.WriteLine("  Caribbean         - Mount & Blade: Caribbean");
             Console.WriteLine();
-            Console.WriteLine("Supported shader formats:");
-            Console.WriteLine("  .vsh / .psh       - DirectX text assembly (plain-text, no tool required)");
-            Console.WriteLine("  .fxc              - DirectX binary bytecode (requires d3dcompiler_47.dll on Windows");
-            Console.WriteLine("                      or dxbc-disassembler on Linux/macOS)");
+            Console.WriteLine("Supported file formats:");
+            Console.WriteLine("  .txt              - Module system files");
+            Console.WriteLine("  .vsh / .psh       - DirectX text assembly shaders");
+            Console.WriteLine("  .fxc              - DirectX binary shaders");
+            Console.WriteLine("  .glsl             - OpenGL shaders");
             Console.WriteLine();
             Console.WriteLine("Examples:");
             Console.WriteLine("  DecompilerCLI scripts.txt");

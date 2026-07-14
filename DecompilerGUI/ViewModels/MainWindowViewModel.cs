@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
@@ -28,13 +29,13 @@ namespace DecompilerGUI.ViewModels
         public string InputPath
         {
             get => _inputPath;
-            set => this.RaiseAndSetIfChanged(ref _inputPath, value);
+            set => this.RaiseAndSetIfChanged(ref _inputPath, NormalizePath(value));
         }
 
         public string OutputPath
         {
             get => _outputPath;
-            set => this.RaiseAndSetIfChanged(ref _outputPath, value);
+            set => this.RaiseAndSetIfChanged(ref _outputPath, NormalizePath(value));
         }
 
         public string SelectedVersion
@@ -189,8 +190,8 @@ namespace DecompilerGUI.ViewModels
                     if (Directory.Exists(InputPath))
                     {
                         var files = Directory.GetFiles(InputPath, "*.*", SearchOption.AllDirectories)
-                            .Where(f => f.EndsWith(".txt") || f.EndsWith(".vsh") || f.EndsWith(".psh") ||
-                                       f.EndsWith(".fxc") || f.EndsWith(".glsl")).ToList();
+                            .Where(f => IsSupportedFileType(f))
+                            .ToList();
 
                         int totalFiles = files.Count;
                         int processedFiles = 0;
@@ -199,7 +200,7 @@ namespace DecompilerGUI.ViewModels
                         {
                             try
                             {
-                                var relativePath = Path.GetRelativePath(InputPath, file);
+                                var relativePath = GetRelativePath(InputPath, file);
                                 var outputFile = Path.Combine(OutputPath, relativePath);
                                 Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
 
@@ -235,6 +236,43 @@ namespace DecompilerGUI.ViewModels
             finally
             {
                 IsIndeterminateProgress = false;
+            }
+        }
+
+        private bool IsSupportedFileType(string filePath)
+        {
+            string extension = Path.GetExtension(filePath).ToLowerInvariant();
+            return extension is ".txt" or ".vsh" or ".psh" or ".fxc" or ".glsl";
+        }
+
+        private string GetRelativePath(string fromPath, string toPath)
+        {
+            var fromUri = new Uri(NormalizePath(fromPath) + Path.DirectorySeparatorChar);
+            var toUri = new Uri(NormalizePath(toPath));
+
+            if (fromUri.Scheme != toUri.Scheme)
+            {
+                return toPath;
+            }
+
+            var relativeUri = fromUri.MakeRelativeUri(toUri);
+            string relativePath = Uri.UnescapeDataString(relativeUri.ToString());
+
+            return relativePath.Replace('/', Path.DirectorySeparatorChar);
+        }
+
+        private string NormalizePath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return path;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return path.Replace('/', '\\');
+            }
+            else
+            {
+                return path.Replace('\\', '/');
             }
         }
 
