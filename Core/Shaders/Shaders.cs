@@ -285,7 +285,8 @@ namespace Decomp.Core.Shaders
             D3DXCreateEffectFromFile(g_D3DDevice, sFileName, IntPtr.Zero, IntPtr.Zero, 0, IntPtr.Zero, &pD3DEffect, &pD3DError);
             D3DXDisassembleEffect(pD3DEffect, false, &pDisassembler);
 
-            var sShaderSource = Marshal.PtrToStringAnsi(ID3DXBuffer_GetBufferPointer(pDisassembler));
+            IntPtr bufferPointer = ID3DXBuffer_GetBufferPointer(pDisassembler);
+            var sShaderSource = bufferPointer != IntPtr.Zero ? Marshal.PtrToStringAnsi(bufferPointer) ?? string.Empty : string.Empty;
 
             var sOutFile = Path.Combine(Common.OutputPath, "Shaders", "mb.fx");
             if (!Directory.Exists(Path.Combine(Common.OutputPath, "Shaders")))
@@ -321,14 +322,15 @@ namespace Decomp.Core.Shaders
                 {
                     if (pErrorBuffer != null)
                     {
-                        string errorMsg = Marshal.PtrToStringAnsi(ID3DXBuffer_GetBufferPointer(pErrorBuffer));
+                        string errorMsg = Marshal.PtrToStringAnsi(ID3DXBuffer_GetBufferPointer(pErrorBuffer)) ?? "Unknown error";
                         Marshal.Release((IntPtr)pErrorBuffer);
                         throw new InvalidOperationException($"Failed to disassemble .fxc file. Error: {errorMsg}");
                     }
                     throw new InvalidOperationException($"Failed to disassemble .fxc file. HRESULT: 0x{hr:X8}");
                 }
 
-                var sShaderSource = Marshal.PtrToStringAnsi(ID3DXBuffer_GetBufferPointer(pDisassembler));
+                IntPtr bufferPointer = ID3DXBuffer_GetBufferPointer(pDisassembler);
+                var sShaderSource = bufferPointer != IntPtr.Zero ? Marshal.PtrToStringAnsi(bufferPointer) ?? string.Empty : string.Empty;
 
                 string? outputDir = Path.GetDirectoryName(outputFile);
                 if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
