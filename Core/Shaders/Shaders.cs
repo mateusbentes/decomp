@@ -7,6 +7,8 @@ namespace Decomp.Core.Shaders
 {
     public static unsafe class Shaders
     {
+        public static bool IsWindowsPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
         // ReSharper disable MemberCanBePrivate.Local
         // ReSharper disable FieldCanBeMadeReadOnly.Local
         // ReSharper disable InconsistentNaming
@@ -128,9 +130,7 @@ namespace Decomp.Core.Shaders
         public const uint WS_TILEDWINDOW = WS_OVERLAPPEDWINDOW;
 
         // Common Window Styles
-
         public const uint WS_OVERLAPPEDWINDOW = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
-
         public const uint WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU;
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 
@@ -224,6 +224,11 @@ namespace Decomp.Core.Shaders
 
         private static void Initialize()
         {
+            if (!IsWindowsPlatform)
+            {
+                throw new PlatformNotSupportedException("A decompilação de shaders só é suportada no Windows.");
+            }
+
             _wndProc = WindowProc;
             var wc = new WNDCLASS
             {
@@ -265,6 +270,11 @@ namespace Decomp.Core.Shaders
 
         public static void Decompile(string sFileName)
         {
+            if (!IsWindowsPlatform)
+            {
+                throw new PlatformNotSupportedException("A decompilação de shaders só é suportada no Windows.");
+            }
+
             Initialize();
 
             ID3DXEffect* pD3DEffect = null;
