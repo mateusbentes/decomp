@@ -1,5 +1,0 @@
-/home/mateus/Develop/decomp/obj/Debug/net8.0/Decomp.GeneratedMSBuildEditorConfig.editorconfig
-/home/mateus/Develop/decomp/obj/Debug/net8.0/Decomp.AssemblyInfoInputs.cache
-/home/mateus/Develop/decomp/obj/Debug/net8.0/Decomp.AssemblyInfo.cs
-/home/mateus/Develop/decomp/obj/Debug/net8.0/Decomp.csproj.CoreCompileInputs.cache
-/home/mateus/Develop/decomp/obj/Debug/net8.0/Decomp.sourcelink.json

@@ -1,2 +1,12 @@
+# Compileation trash
+bin/
+obj/
+
+# User-specific files
+.vs/
+.vscode/
+*.user
+*.suo
+
 # Ignore .refact file
 .refact
