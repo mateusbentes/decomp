@@ -125,13 +125,11 @@ namespace Decomp.Core
 #if RELEASE
             try
             {
-#endif
                 if (isSingleFile)
                     ProcessSingleFile();
                 else
                     ProcessFullModule();
                 success = true;
-#if RELEASE
             }
             catch (ThreadAbortException)
             {
