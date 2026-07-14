@@ -63,6 +63,12 @@ namespace Decomp.Core.Shaders
                 string disassembledCode = Shaders.DisassembleFxcWithD3DDisassemble(shaderBytecode);
                 File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
             }
+            catch (DllNotFoundException ex)
+            {
+                throw new InvalidOperationException(
+                    "Failed to disassemble .fxc file: d3dcompiler_47.dll not found. " +
+                    "Ensure DirectX runtime is installed.", ex);
+            }
             catch (Exception ex)
             {
                 throw new InvalidOperationException(
