@@ -35,7 +35,6 @@ namespace DecompilerCLI
 
                 if (Directory.Exists(inputPath))
                 {
-                    // Process folder
                     if (outputPath == null)
                     {
                         outputPath = Path.Combine(inputPath, "decompiled");
@@ -57,6 +56,10 @@ namespace DecompilerCLI
                             Decompiler.Decompile(file, outputFile, gameVersion);
                             processedFiles++;
                         }
+                        catch (PlatformNotSupportedException ex)
+                        {
+                            Console.WriteLine($"Warning: {ex.Message} (arquivo: {file})");
+                        }
                         catch (Exception ex)
                         {
                             Console.WriteLine($"Warning: Failed to decompile file '{file}': {ex.Message}");
@@ -67,7 +70,6 @@ namespace DecompilerCLI
                 }
                 else if (File.Exists(inputPath))
                 {
-                    // Process single file
                     string outputFile;
                     if (outputPath == null)
                     {
@@ -87,8 +89,16 @@ namespace DecompilerCLI
                         }
                     }
 
-                    Decompiler.Decompile(inputPath, outputFile, gameVersion);
-                    Console.WriteLine("Decompilation completed successfully.");
+                    try
+                    {
+                        Decompiler.Decompile(inputPath, outputFile, gameVersion);
+                        Console.WriteLine("Decompilation completed successfully.");
+                    }
+                    catch (PlatformNotSupportedException ex)
+                    {
+                        Console.WriteLine($"Error: {ex.Message}");
+                        return 1;
+                    }
                 }
 
                 return 0;

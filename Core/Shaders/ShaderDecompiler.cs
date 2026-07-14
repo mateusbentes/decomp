@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Decomp.Core.Shaders
 {
@@ -9,6 +10,11 @@ namespace Decomp.Core.Shaders
     {
         public static void Decompile(string inputFile, string outputFile, string? gameVersion = null)
         {
+            if (!File.Exists(inputFile))
+            {
+                throw new FileNotFoundException($"Arquivo de shader não encontrado: {inputFile}");
+            }
+
             if (string.IsNullOrEmpty(gameVersion))
             {
                 gameVersion = "VanillaWarband";
@@ -18,7 +24,10 @@ namespace Decomp.Core.Shaders
                             gameVersion.Equals("WSE320", StringComparison.OrdinalIgnoreCase) ||
                             gameVersion.Equals("WSE450", StringComparison.OrdinalIgnoreCase);
 
-            if (isWarband && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            // Detecta automaticamente se o shader é OpenGL (Warband) ou Direct3D (outros jogos)
+            bool isOpenGLShader = IsOpenGLShader(inputFile);
+
+            if (isWarband && isOpenGLShader && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 DecompileWarbandOpenGLShader(inputFile, outputFile);
             }
@@ -28,17 +37,28 @@ namespace Decomp.Core.Shaders
             }
             else
             {
-                DecompileWithExternalTool(inputFile, outputFile);
+                DecompileDirectXShader(inputFile, outputFile);
+            }
+        }
+
+        private static bool IsOpenGLShader(string inputFile)
+        {
+            try
+            {
+                // Shaders OpenGL (Warband) geralmente começam com "#version" ou têm cabeçalhos específicos
+                using var reader = new StreamReader(inputFile, Encoding.UTF8);
+                string firstLine = reader.ReadLine() ?? string.Empty;
+                return firstLine.StartsWith("#version", StringComparison.OrdinalIgnoreCase) ||
+                       firstLine.Contains("GLSL", StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
             }
         }
 
         private static void DecompileWarbandOpenGLShader(string inputFile, string outputFile)
         {
-            if (!File.Exists(inputFile))
-            {
-                throw new FileNotFoundException($"Arquivo de shader não encontrado: {inputFile}");
-            }
-
             string disassemblerPath = GetOpenGLDisassemblerPath();
             if (!File.Exists(disassemblerPath))
             {
@@ -77,13 +97,8 @@ namespace Decomp.Core.Shaders
             File.WriteAllText(outputFile, Header.Shaders + disassembledCode);
         }
 
-        private static void DecompileWithExternalTool(string inputFile, string outputFile)
+        private static void DecompileDirectXShader(string inputFile, string outputFile)
         {
-            if (!File.Exists(inputFile))
-            {
-                throw new FileNotFoundException($"Arquivo de shader não encontrado: {inputFile}");
-            }
-
             string disassemblerPath = GetDirectXDisassemblerPath();
             if (!File.Exists(disassemblerPath))
             {
