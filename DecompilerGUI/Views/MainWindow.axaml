@@ -3,20 +3,109 @@
         xmlns:vm="using:DecompilerGUI.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
         x:Class="DecompilerGUI.Views.MainWindow"
-        x:DataType="vm:MainViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="DecompilerGUI">
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/knight.ico"
+        Title="{Binding GetLocalizedString(AppTitle)}"
+        Background="#2D2D30"
+        Width="900" Height="600"
+        MinWidth="800" MinHeight="500">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainViewModel />
+        <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <TextBox Text="{Binding Greeting}"
-             HorizontalAlignment="Center"
-             VerticalAlignment="Center" />
+    <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="10">
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                   Text="{Binding GetLocalizedString(AppTitle)}"
+                   FontSize="20" FontWeight="Bold" Foreground="#FFFFFF"
+                   HorizontalAlignment="Center" Margin="0,0,0,15"/>
 
+        <!-- Language Selection -->
+        <Border Grid.Row="0" Grid.Column="1" Background="#3E3E42" CornerRadius="5" Padding="5" HorizontalAlignment="Right">
+            <StackPanel Orientation="Horizontal" Spacing="5">
+                <TextBlock Text="Language:" VerticalAlignment="Center" Foreground="#E0E0E0"/>
+                <ComboBox Items="{Binding AvailableLanguages}" SelectedItem="{Binding CurrentLanguage}"
+                          DisplayMemberPath="NativeName" SelectedIndex="0" MinWidth="120"
+                          Background="#1E1E1E" Foreground="#E0E0E0" BorderBrush="#505050">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding NativeName}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                    <ComboBox.SelectedItem>
+                        <Binding Path="CurrentLanguage">
+                            <Binding.Converter>
+                                <vm:CultureInfoToStringConverter/>
+                            </Binding.Converter>
+                        </Binding>
+                    </ComboBox.SelectedItem>
+                </ComboBox>
+            </StackPanel>
+        </Border>
+
+        <!-- Input Section -->
+        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Background="#3E3E42" CornerRadius="5" Padding="10">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding GetLocalizedString(InputSectionTitle)}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Text="{Binding InputPath}" Watermark="{Binding GetLocalizedString(InputPlaceholder)}"
+                             Background="#1E1E1E" Foreground="#E0E0E0" BorderBrush="#505050" BorderThickness="1"
+                             Margin="0,0,5,0"/>
+                    <Button Grid.Column="1" Content="{Binding GetLocalizedString(BrowseButton)}" Command="{Binding BrowseInputCommand}"
+                            Margin="5,0,0,0" Width="80" Background="#0E639C" Foreground="White"
+                            CornerRadius="3" Padding="5,0"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Output Section -->
+        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#3E3E42" CornerRadius="5" Padding="10">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding GetLocalizedString(OutputSectionTitle)}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Text="{Binding OutputPath}" Watermark="{Binding GetLocalizedString(OutputPlaceholder)}"
+                             Background="#1E1E1E" Foreground="#E0E0E0" BorderBrush="#505050" BorderThickness="1"
+                             Margin="0,0,5,0"/>
+                    <Button Grid.Column="1" Content="{Binding GetLocalizedString(BrowseButton)}" Command="{Binding BrowseOutputCommand}"
+                            Margin="5,0,0,0" Width="80" Background="#0E639C" Foreground="White"
+                            CornerRadius="3" Padding="5,0"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Engine Version -->
+        <Border Grid.Row="3" Grid.Column="0" Background="#3E3E42" CornerRadius="5" Padding="10">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding GetLocalizedString(EngineVersionTitle)}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
+                <ComboBox Items="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}"
+                          Background="#1E1E1E" Foreground="#E0E0E0" BorderBrush="#505050"
+                          SelectedIndex="1"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Decompile Button -->
+        <Button Grid.Row="3" Grid.Column="1" Content="{Binding GetLocalizedString(DecompileButton)}" Command="{Binding DecompileCommand}"
+                FontSize="16" Background="#0078D7" Foreground="White" Height="35" CornerRadius="3"
+                FontWeight="Medium"/>
+
+        <!-- Progress Bar -->
+        <ProgressBar Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Value="{Binding Progress}"
+                     IsIndeterminate="{Binding IsIndeterminateProgress}" Height="5" Margin="0,5"
+                     Background="#1E1E1E" Foreground="#0078D7"/>
+
+        <!-- Log Area -->
+        <Border Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Background="#1E1E1E" CornerRadius="5" Padding="5">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas" FontSize="12"
+                           Foreground="#E0E0E0" TextWrapping="Wrap"/>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Status Bar -->
+        <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding StatusMessage}"
+                   VerticalAlignment="Center" Foreground="#A0A0A0" FontSize="12"/>
+    </Grid>
 </Window>
