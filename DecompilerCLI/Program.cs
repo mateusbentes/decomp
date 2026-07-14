@@ -10,13 +10,19 @@ namespace DecompilerCLI
             if (args.Length == 0)
             {
                 Console.WriteLine("Usage: DecompilerCLI <input_file> [output_file] [game_version]");
-                Console.WriteLine("Game versions: VanillaClassic, VanillaWarband, WSE320, WSE450, Caribbean");
+                Console.WriteLine("Game versions: VanillaClassic, VanillaWarband, VanillaWFS, WSE320, WSE450, Caribbean");
                 return;
             }
 
             string inputFile = args[0];
             string outputFile = args.Length > 1 ? args[1] : null;
             string gameVersion = args.Length > 2 ? args[2] : "VanillaWarband";
+
+            // Mapear VanillaWFS para usar a mesma lógica que VanillaWarband
+            if (gameVersion.Equals("VanillaWFS", StringComparison.OrdinalIgnoreCase))
+            {
+                gameVersion = "VanillaWarband";
+            }
 
             try
             {
