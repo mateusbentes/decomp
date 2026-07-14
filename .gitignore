@@ -1,13 +1,18 @@
-# Compileation trash
+# Compilation trash (rules are recursive, ignoring both Decomp and DecompilerGUI bins)
 bin/
 obj/
 
-# User-specific files
+# User-specific files & IDE configurations
 .vs/
 .vscode/
+.idea/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
 
-# Ignore .refact file
+# Tooling & AI assistant caches
 .refact
-.aider*
+.aider*# Compileation trash
+bin/
+obj/
