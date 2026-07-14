@@ -30,16 +30,13 @@ Install `dxbc-disassembler` (part of DirectXShaderCompiler):
   - Your system `PATH`, **or**
   - The project's root directory.
 
-Ensure:
-1. The tool (`spirv-cross` or `dxbc-disassembler`) is installed.
-2. The tool is in your `PATH` or in the project's root directory.
-
+Troubleshooting:
 #### Error: "Platform not supported"
-If you see:
 
-- This error occurs when trying to decompile Direct3D shaders on Linux/macOS without `dxbc-disassembler`.
-- Install `dxbc-disassembler` as described in the [Prerequisites](#prerequisites) section.
+  - This error occurs when trying to decompile Direct3D shaders on Linux/macOS without dxbc-disassembler.
+
+  - Install dxbc-disassembler as described in the Prerequisites section.
 
 #### Error: "Failed to decompile shader"
-- Ensure the input file is a valid shader file (`.fx`, `.glsl`).
-- Check the file permissions.
+- Ensure the input file is a valid shader file (`.fx`, `.glsl`, `.fxc`).
+- Check the file permissions of the shader files and ensure the tools in your PATH have execution permissions (`chmod +x`).
