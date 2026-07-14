@@ -10,7 +10,7 @@ This is a modernized, headless fork of the original WPF decompiler, rewritten to
 
 - **Headless & Cross-Platform:** No Windows-only UI dependencies. Works natively on Linux/macOS.
 - **Directory-to-Directory Processing:** Automatically scans a game module directory and decompiles all main files in one run.
-- **Multi-Game Support:** Supports multiple game versions and spin-offs based on the Taleworlds engine (such as Warband, WSE, and Caribbean).
+- **Multi-Game Support:** Supports multiple game versions and spin-offs based on the Taleworlds engine (such as Warband, With Fire And Sword, WSE, and Caribbean).
 
 ---
 
@@ -29,6 +29,8 @@ Supported Game/Engine Versions:
     VanillaClassic (Original Mount & Blade)
 
     VanillaWarband (M&B: Warband)
+
+    VanillaWFS (M&B: With Fire & Sword)  
 
     WSE320 / WSE450 (Warband Script Enhancer)
 
