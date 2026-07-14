@@ -15,30 +15,73 @@ namespace Decomp.Core
     {
         public static void Decompile(string inputFile, string outputFile = null, string gameVersion = "VanillaWarband")
         {
-            // Implementação básica para compilar. Você deve substituir pelo código real de decompilação.
-            Console.WriteLine($"Decompilando {inputFile} para {outputFile ?? "saída padrão"} usando versão {gameVersion}");
-
-            // Exemplo de lógica mínima para compilar
             if (!File.Exists(inputFile))
             {
                 throw new FileNotFoundException("Arquivo de entrada não encontrado.", inputFile);
             }
 
-            // Se outputFile não for fornecido, escreve no console
-            if (string.IsNullOrEmpty(outputFile))
+            // Mapear VanillaWFS para VanillaWarband para usar os mesmos operadores
+            if (gameVersion.Equals("VanillaWFS", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine($"[Decompilação simulada de {inputFile}]");
+                gameVersion = "VanillaWarband";
             }
-            else
-            {
-                File.WriteAllText(outputFile, $"[Decompilação simulada de {inputFile} para {gameVersion}]");
-            }
-        }
 
-        // Método antigo removido ou mantido como privado se necessário
-        private static void NovoMetodo()
-        {
-            Console.WriteLine("Método adicionado para exemplo.");
+            // Carregar o operador correto baseado na versão do jogo
+            IGameVersion version = gameVersion.ToLowerInvariant() switch
+            {
+                "vanillaclassic" => new VanillaVersion(),
+                "vanillawarband" => new Warband1153Version(),
+                "wse320" => new WarbandScriptEnhancer320Version(),
+                "wse450" => new WarbandScriptEnhancer450Version(),
+                "caribbean" => new CaribbeanVersion(),
+                _ => throw new ArgumentException($"Versão do jogo não suportada: {gameVersion}")
+            };
+
+            Operator op = new Operator(version);
+
+            // Processar o arquivo de entrada
+            Text text = new Text();
+            text.Load(inputFile);
+
+            Win32FileWriter output = null;
+            try
+            {
+                output = string.IsNullOrEmpty(outputFile)
+                    ? new Win32FileWriter(Console.OpenStandardOutput())
+                    : new Win32FileWriter(outputFile);
+
+                // Lógica real de descompilação
+                while (text.Peek() != -1)
+                {
+                    int iRecords = text.GetInt();
+                    output.WriteLine("decl {0} {1}", iRecords, op.GetVersion());
+
+                    for (int r = 0; r < iRecords; r++)
+                    {
+                        int iCodeSize = text.GetInt();
+                        output.WriteLine("code {0}", iCodeSize);
+
+                        for (int i = 0; i < iCodeSize; i++)
+                        {
+                            int iOpCode = text.GetInt();
+                            string sOpCode = op[iOpCode];
+                            int iNumParams = op.GetNumParams(iOpCode);
+                            output.Write("\t{0}", sOpCode);
+
+                            for (int p = 0; p < iNumParams; p++)
+                            {
+                                int iParam = text.GetInt();
+                                output.Write(" {0}", op.GetParameter(i, sOpCode, iParam));
+                            }
+                            output.WriteLine();
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                output?.Close();
+            }
         }
     }
 }

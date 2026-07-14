@@ -18,12 +18,6 @@ namespace DecompilerCLI
             string outputFile = args.Length > 1 ? args[1] : null;
             string gameVersion = args.Length > 2 ? args[2] : "VanillaWarband";
 
-            // Mapear VanillaWFS para usar a mesma lógica que VanillaWarband
-            if (gameVersion.Equals("VanillaWFS", StringComparison.OrdinalIgnoreCase))
-            {
-                gameVersion = "VanillaWarband";
-            }
-
             try
             {
                 Decompiler.Decompile(inputFile, outputFile, gameVersion);
