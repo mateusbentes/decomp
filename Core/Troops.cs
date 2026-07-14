@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -94,10 +94,10 @@ namespace Decomp.Core
                 sbFlag.Append("tf_guarantee_all_wo_ranged|");
                 dwFlag ^= 0x3F00000;
             }
-            string[] strFlags = { "tf_hero", "tf_inactive", "tf_unkillable", "tf_allways_fall_dead", "tf_no_capture_alive", "tf_mounted", 
-            "tf_is_merchant", "tf_randomize_face", "tf_guarantee_boots", "tf_guarantee_armor", "tf_guarantee_helmet", "tf_guarantee_gloves", 
+            string[] strFlags = { "tf_hero", "tf_inactive", "tf_unkillable", "tf_allways_fall_dead", "tf_no_capture_alive", "tf_mounted",
+            "tf_is_merchant", "tf_randomize_face", "tf_guarantee_boots", "tf_guarantee_armor", "tf_guarantee_helmet", "tf_guarantee_gloves",
             "tf_guarantee_horse", "tf_guarantee_shield", "tf_guarantee_ranged", "tf_unmoveable_in_party_window" };
-            DWORD[] dwFlags = { 0x00000010, 0x00000020, 0x00000040, 0x00000080, 0x00000100, 0x00000400, 0x00001000, 0x00008000, 0x00100000, 
+            DWORD[] dwFlags = { 0x00000010, 0x00000020, 0x00000040, 0x00000080, 0x00000100, 0x00000400, 0x00001000, 0x00008000, 0x00100000,
             0x00200000, 0x00400000, 0x00800000, 0x01000000, 0x02000000, 0x04000000, 0x10000000 };
             for (int i = 0; i < dwFlags.Length; i++)
             {
@@ -132,9 +132,9 @@ namespace Decomp.Core
                     "imod_smelling", "imod_rotten", "imod_large_bag"
                 };
             }
-            
+
             var lines = FileReader.ReadAllLines(Path.Combine(Common.InputPath, "Data", "item_modifiers.txt"));
-            return lines.Select(x => x.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()).ToList();
+            return lines.Select(x => x.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty).ToList()!;
         }
 
         public static void Decompile()
@@ -144,10 +144,10 @@ namespace Decomp.Core
             fSource.WriteLine(Header.Standard);
             fSource.WriteLine(Header.Troops);
 
-            for (int s = 0; s < Common.Skins.Count; s++) fSource.WriteLine("tf_" + Common.Skins[s] + " = " + s); 
+            for (int s = 0; s < Common.Skins.Count; s++) fSource.WriteLine("tf_" + Common.Skins[s] + " = " + s);
 
             fSource.WriteLine("\r\ntroops = [");
-            
+
             fTroops.GetString();
             var iTroops = fTroops.GetInt();
 
@@ -176,17 +176,11 @@ namespace Decomp.Core
                 var iUp1 = fTroops.GetInt();
                 var iUp2 = fTroops.GetInt();
 
-                /*if (iUp1 != 0 && iUp2 != 0)
-                    strUpList.Add(
-                        $"upgrade2(troops,\"{Common.Troops[t]}\",\"{Common.Troops[iUp1]}\",\"{Common.Troops[iUp2]}\")");
-                else if (iUp1 != 0 && iUp2 == 0)
-                    strUpList.Add($"upgrade(troops,\"{Common.Troops[t]}\",\"{Common.Troops[iUp1]}\")");
-                */
                 if(iUp1 != 0 && iUp2 != 0)
                     aUpList.Add(new Upgrade2(t, iUp1, iUp2));
                 else if (iUp1 != 0 && iUp2 == 0)
                     aUpList.Add(new Upgrade(t, iUp1));
-                
+
                 var itemList = new List<KeyValuePair<int, int>>(64);
                 for (int i = 0; i < 64; i++)
                 {

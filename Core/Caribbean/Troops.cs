@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -40,7 +40,6 @@ namespace Decomp.Core.Caribbean
             3 => "ca_charisma",
             _ => dwAttribute.ToString(CultureInfo.GetCultureInfo("en-US")),
         };
-        
 
         public static string GetScene(DWORD dwScene)
         {
@@ -106,7 +105,7 @@ namespace Decomp.Core.Caribbean
             }
 
             var lines = FileReader.ReadAllLines(Path.Combine(Common.InputPath, "Data", "item_modifiers.txt"));
-            return lines.Select(x => x.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()).ToList();
+            return lines.Select(x => x.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty).ToList()!;
         }
 
         public static void Decompile()
@@ -148,12 +147,6 @@ namespace Decomp.Core.Caribbean
                 var iUp1 = fTroops.GetInt();
                 var iUp2 = fTroops.GetInt();
 
-                /*if (iUp1 != 0 && iUp2 != 0)
-                    strUpList.Add(
-                        $"upgrade2(troops,\"{Common.Troops[t]}\",\"{Common.Troops[iUp1]}\",\"{Common.Troops[iUp2]}\")");
-                else if (iUp1 != 0 && iUp2 == 0)
-                    strUpList.Add($"upgrade(troops,\"{Common.Troops[t]}\",\"{Common.Troops[iUp1]}\")");
-                */
                 if (iUp1 != 0 && iUp2 != 0)
                     aUpList.Add(new Core.Troops.Upgrade2(t, iUp1, iUp2));
                 else if (iUp1 != 0 && iUp2 == 0)
@@ -209,7 +202,7 @@ namespace Decomp.Core.Caribbean
                 var aFaces = new string[iFaces];
                 for (int f = 0; f < iFaces; f++)
                     aFaces[f] = $"0x{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}";
-                fSource.WriteLine(" {0}],", aFaces.Length == 1 ? aFaces[0] : 
+                fSource.WriteLine(" {0}],", aFaces.Length == 1 ? aFaces[0] :
                         (aFaces.Length == 2 ? aFaces[0] + ", " + aFaces[1] : '[' + String.Join(", ", aFaces) + ']'));
             }
 
