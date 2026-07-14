@@ -40,7 +40,7 @@ namespace Decomp.Core
             if (extension is ".fx" or ".vsh" or ".psh")
             {
                 string outputPath = outputFile ?? Path.ChangeExtension(inputFile, ".txt");
-                ShaderDecompiler.Decompile(inputFile, outputPath);
+                ShaderDecompiler.Decompile(inputFile, outputPath, gameVersion);
                 return;
             }
 
