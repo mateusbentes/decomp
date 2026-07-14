@@ -48,5 +48,7 @@ namespace Decomp
         }
 
         public static string GetResource(string s) => (string)Current.FindResource(s);
+
+        public static string Greeting => "Hey there!";
     }
 }
