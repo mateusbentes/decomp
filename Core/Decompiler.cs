@@ -26,7 +26,6 @@ namespace Decomp.Core
             {
                 "vanillaclassic" => new VanillaVersion(),
                 "vanillawarband" => new Warband1153Version(),
-                "warband1153"    => new Warband1153Version(),
                 "warband1171"    => new Warband1171Version(),
                 "vanillawfs"     => new WFSVersion(),
                 "wse320"         => new WarbandScriptEnhancer320Version(),

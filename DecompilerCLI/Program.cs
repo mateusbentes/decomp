@@ -14,7 +14,6 @@ namespace DecompilerCLI
                 Console.WriteLine("Supported game versions:");
                 Console.WriteLine("  VanillaClassic    - Mount & Blade Classic");
                 Console.WriteLine("  VanillaWarband    - Mount & Blade: Warband (1.153)");
-                Console.WriteLine("  Warband1153       - Mount & Blade: Warband (1.153)");
                 Console.WriteLine("  Warband1171       - Mount & Blade: Warband (1.171)");
                 Console.WriteLine("  VanillaWFS        - Mount & Blade: With Fire & Sword");
                 Console.WriteLine("  WSE320            - Warband Script Enhancer 3.2.0");
