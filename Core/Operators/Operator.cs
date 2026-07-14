@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -62,6 +62,14 @@ namespace Decomp.Core.Operators
     }
 #pragma warning restore CA1720 // Identifier contains type name
 
+    public enum Mode
+    {
+        Caribbean,
+        WarbandScriptEnhancer450,
+        WarbandScriptEnhancer320,
+        Vanilla,  // Mount & Blade: With Fire & Sword
+    }
+
 #pragma warning disable CA1716 // Identifiers should not match keywords
     public class Operator
     {
@@ -80,7 +88,7 @@ namespace Decomp.Core.Operators
         {
             Initialize(value, code);
         }
-        
+
         public Operator(string value, int code, params Parameter[] @params)
         {
             Initialize(value, code);
@@ -164,7 +172,7 @@ namespace Decomp.Core.Operators
             Mode.WarbandScriptEnhancer450 => GetCollection(new List<IGameVersion> { new Warband1171Version(), new WarbandScriptEnhancer450Version() }),
             Mode.WarbandScriptEnhancer320 => GetCollection(new List<IGameVersion> { new Warband1153Version(), new WarbandScriptEnhancer320Version() }),
             Mode.Vanilla => GetCollection(new List<IGameVersion> { new VanillaVersion() }),
-            _ => throw new ArgumentOutOfRangeException(nameof(m), m, null),  
+            _ => throw new ArgumentOutOfRangeException(nameof(m), m, null),
         };
     }
 #pragma warning restore CA1716 // Identifiers should not match keywords
