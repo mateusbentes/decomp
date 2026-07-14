@@ -9,9 +9,6 @@ namespace Decomp.Core.Shaders
     {
         public static bool IsWindowsPlatform => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-        // ReSharper disable MemberCanBePrivate.Local
-        // ReSharper disable FieldCanBeMadeReadOnly.Local
-        // ReSharper disable InconsistentNaming
         private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -101,7 +98,7 @@ namespace Decomp.Core.Shaders
             public uint PresentationInterval;
         }
 
-#pragma warning disable CA1707 // Identifiers should not contain underscores
+#pragma warning disable CA1707
         public const uint WS_OVERLAPPED = 0x00000000;
         public const uint WS_POPUP = 0x80000000;
         public const uint WS_CHILD = 0x40000000;
@@ -111,7 +108,7 @@ namespace Decomp.Core.Shaders
         public const uint WS_CLIPSIBLINGS = 0x04000000;
         public const uint WS_CLIPCHILDREN = 0x02000000;
         public const uint WS_MAXIMIZE = 0x01000000;
-        public const uint WS_CAPTION = 0x00C00000;     /* WS_BORDER | WS_DLGFRAME  */
+        public const uint WS_CAPTION = 0x00C00000;
         public const uint WS_BORDER = 0x00800000;
         public const uint WS_DLGFRAME = 0x00400000;
         public const uint WS_VSCROLL = 0x00200000;
@@ -129,10 +126,9 @@ namespace Decomp.Core.Shaders
         public const uint WS_SIZEBOX = WS_THICKFRAME;
         public const uint WS_TILEDWINDOW = WS_OVERLAPPEDWINDOW;
 
-        // Common Window Styles
         public const uint WS_OVERLAPPEDWINDOW = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
         public const uint WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU;
-#pragma warning restore CA1707 // Identifiers should not contain underscores
+#pragma warning restore CA1707
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         private struct IDirect3D9
@@ -218,15 +214,12 @@ namespace Decomp.Core.Shaders
         private static WndProc _wndProc = null!;
 
         private const string g_szClassName = "shadersdecomp548hxs09qxw";
-        // ReSharper restore FieldCanBeMadeReadOnly.Local
-        // ReSharper restore MemberCanBePrivate.Local
-        // ReSharper restore InconsistentNaming
 
         private static void Initialize()
         {
             if (!IsWindowsPlatform)
             {
-                throw new PlatformNotSupportedException("A decompilação de shaders só é suportada no Windows.");
+                throw new PlatformNotSupportedException("A inicialização do Direct3D só é suportada no Windows.");
             }
 
             _wndProc = WindowProc;
@@ -272,7 +265,7 @@ namespace Decomp.Core.Shaders
         {
             if (!IsWindowsPlatform)
             {
-                throw new PlatformNotSupportedException("A decompilação de shaders só é suportada no Windows.");
+                throw new PlatformNotSupportedException("A decompilação de shaders via Direct3D só é suportada no Windows. Use ShaderDecompiler.Decompile() em outras plataformas.");
             }
 
             Initialize();
