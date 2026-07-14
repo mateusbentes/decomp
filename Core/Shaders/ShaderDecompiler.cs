@@ -21,11 +21,21 @@ namespace Decomp.Core.Shaders
             }
 
             string extension = Path.GetExtension(inputFile).ToLowerInvariant();
+
+            // .vsh (vertex shader) and .psh (pixel shader) are plain-text HLSL assembly
+            // files used by the Mount & Blade engine. They are already human-readable
+            // and only need to be read and written with the standard shader header.
+            if (extension is ".vsh" or ".psh")
+            {
+                DecompileTextShader(inputFile, outputFile);
+                return;
+            }
+
             bool isFxcFile = extension.Equals(".fxc", StringComparison.OrdinalIgnoreCase);
             bool isGlslFile = extension.Equals(".glsl", StringComparison.OrdinalIgnoreCase);
             bool isWarbandShader = gameVersion.Equals("VanillaWarband", StringComparison.OrdinalIgnoreCase) ||
-                                  gameVersion.Equals("WSE320", StringComparison.OrdinalIgnoreCase) ||
-                                  gameVersion.Equals("WSE450", StringComparison.OrdinalIgnoreCase);
+                                   gameVersion.Equals("WSE320", StringComparison.OrdinalIgnoreCase) ||
+                                   gameVersion.Equals("WSE450", StringComparison.OrdinalIgnoreCase);
 
             if (isFxcFile)
             {
@@ -39,8 +49,24 @@ namespace Decomp.Core.Shaders
             {
                 throw new NotSupportedException(
                     $"Shader decompilation for file type '{extension}' is not supported. " +
-                    "Supported formats: .fxc (DirectX), .glsl (OpenGL).");
+                    "Supported formats: .vsh/.psh (DirectX text assembly), .fxc (DirectX binary), .glsl (OpenGL).");
             }
+        }
+
+        /// <summary>
+        /// Reads a plain-text HLSL assembly shader (.vsh or .psh) and writes it
+        /// to the output file with the standard shader header prepended.
+        /// </summary>
+        private static void DecompileTextShader(string inputFile, string outputFile)
+        {
+            string? outputDir = Path.GetDirectoryName(outputFile);
+            if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+            }
+
+            string shaderText = File.ReadAllText(inputFile, Encoding.UTF8);
+            File.WriteAllText(outputFile, Header.Shaders + shaderText);
         }
 
         private static void DecompileFxc(string inputFile, string outputFile)
@@ -192,8 +218,6 @@ namespace Decomp.Core.Shaders
 
         private static string GetOpenGLDisassemblerPath()
         {
-            // Check absolute paths only; relative names without a path separator
-            // are not resolvable via File.Exists and must be left to the OS PATH.
             string[] absolutePaths =
             {
                 "/usr/bin/spirv-cross",
