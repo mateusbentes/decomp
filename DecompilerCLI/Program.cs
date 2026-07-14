@@ -10,7 +10,13 @@ namespace DecompilerCLI
             if (args.Length == 0)
             {
                 Console.WriteLine("Usage: DecompilerCLI <input_file> [output_file] [game_version]");
-                Console.WriteLine("Game versions: VanillaClassic, VanillaWarband, VanillaWFS, WSE320, WSE450, Caribbean");
+                Console.WriteLine("Game versions:");
+                Console.WriteLine("  VanillaClassic    - Mount & Blade Classic");
+                Console.WriteLine("  VanillaWarband    - Mount & Blade: Warband");
+                Console.WriteLine("  VanillaWFS        - Mount & Blade: With Fire & Sword (Vanilla)");
+                Console.WriteLine("  WSE320            - Warband Script Enhancer 3.2.0");
+                Console.WriteLine("  WSE450            - Warband Script Enhancer 4.5.0");
+                Console.WriteLine("  Caribbean         - Mount & Blade: Caribbean");
                 return;
             }
 
