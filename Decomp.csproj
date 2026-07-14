@@ -9,4 +9,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks> 
   </PropertyGroup>
 
-  </Project>
+  <ItemGroup>
+    <Compile Remove="DecompilerGUI\**\*.cs" />
+    <EmbeddedResource Remove="DecompilerGUI\**\*" />
+    <None Include="DecompilerGUI\**\*" />
+  </ItemGroup>
+
+</Project>
