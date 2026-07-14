@@ -311,7 +311,7 @@ namespace Decomp.Core.Shaders
             var sOutFile = Path.Combine(Common.OutputPath, "Shaders", "mb.fx");
             if (!Directory.Exists(Path.Combine(Common.OutputPath, "Shaders")))
                 Directory.CreateDirectory(Path.Combine(Common.OutputPath, "Shaders"));
-            Win32FileWriter.WriteAllText(sOutFile, Header.Shaders + sShaderSource);
+            FileWriter.WriteAllText(sOutFile, Header.Shaders + sShaderSource);
 
             if (pDisassembler != null) Marshal.Release((IntPtr)pDisassembler);
             if (pD3DError != null) Marshal.Release((IntPtr)pD3DError);
