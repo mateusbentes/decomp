@@ -78,7 +78,7 @@ namespace DecompilerGUI.ViewModels
                 if (_currentLanguage != value)
                 {
                     this.RaiseAndSetIfChanged(ref _currentLanguage, value);
-                    ChangeLanguage(value.Name);
+                    ChangeLanguage(value?.Name ?? "en-US");
                 }
             }
         }
@@ -151,6 +151,8 @@ namespace DecompilerGUI.ViewModels
         private async Task BrowseInputAsync()
         {
             var topLevel = TopLevel.GetTopLevel(App.MainWindow);
+            if (topLevel == null) return;
+
             var options = new FilePickerOpenOptions
             {
                 Title = InputSectionTitle,
@@ -169,6 +171,8 @@ namespace DecompilerGUI.ViewModels
         private async Task BrowseOutputAsync()
         {
             var topLevel = TopLevel.GetTopLevel(App.MainWindow);
+            if (topLevel == null) return;
+
             var options = new FolderPickerOpenOptions
             {
                 Title = OutputSectionTitle
@@ -199,18 +203,15 @@ namespace DecompilerGUI.ViewModels
                 return;
             }
 
-            if (!Directory.Exists(OutputPath))
+            try
             {
-                try
-                {
-                    Directory.CreateDirectory(OutputPath);
-                }
-                catch (Exception ex)
-                {
-                    LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}\n";
-                    StatusMessage = ErrorCreateOutput;
-                    return;
-                }
+                Directory.CreateDirectory(OutputPath);
+            }
+            catch (Exception ex)
+            {
+                LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}\n";
+                StatusMessage = ErrorCreateOutput;
+                return;
             }
 
             IsIndeterminateProgress = true;
@@ -236,7 +237,11 @@ namespace DecompilerGUI.ViewModels
                             {
                                 var relativePath = GetRelativePath(InputPath, file);
                                 var outputFile = Path.Combine(OutputPath, relativePath);
-                                Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+                                var outputDir = Path.GetDirectoryName(outputFile);
+                                if (outputDir != null)
+                                {
+                                    Directory.CreateDirectory(outputDir);
+                                }
 
                                 Decompiler.Decompile(file, outputFile, SelectedVersion);
                                 processedFiles++;
@@ -275,7 +280,7 @@ namespace DecompilerGUI.ViewModels
 
         private bool IsSupportedFileType(string filePath)
         {
-            string extension = Path.GetExtension(filePath).ToLowerInvariant();
+            string extension = Path.GetExtension(filePath)?.ToLowerInvariant() ?? string.Empty;
             return extension is ".txt" or ".vsh" or ".psh" or ".fxc" or ".glsl";
         }
 
