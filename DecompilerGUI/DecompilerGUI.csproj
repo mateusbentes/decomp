@@ -15,18 +15,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\knight.ico" />
+    <None Remove="Assets/knight.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets\knight.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\Languages\Strings.resx" Condition="Exists('..\Languages\Strings.resx')">
+    <Content Include="Languages\Strings.resx" Condition="Exists('..\Languages\Strings.resx')">
       <Link>Languages\Strings.resx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\Languages\Strings.ru.resx" Condition="Exists('..\Languages\Strings.ru.resx')">
+    <Content Include="Languages\Strings.ru.resx" Condition="Exists('..\Languages\Strings.ru.resx')">
       <Link>Languages\Strings.ru.resx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -43,8 +43,8 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="ReactiveUI" Version="20.1.1" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
-    <PackageReference Include="SkiaSharp" Version="2.88.6" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.6" Condition="'$(RuntimeIdentifier)' == 'linux-x64' OR '$(RuntimeIdentifier)' == 'linux-arm64'" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.9" Condition="'$(RuntimeIdentifier)' == 'linux-x64' OR '$(RuntimeIdentifier)' == 'linux-arm64'" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-arm64'">
@@ -59,7 +59,7 @@
 
   <Target Name="RemoveDuplicateResources" AfterTargets="Build">
     <ItemGroup>
-      <DuplicateResources Include="$(OutputPath)DecompilerGUI\Languages\*.resx" />
+      <DuplicateResources Include="$(OutputPath)DecompilerGUI/Languages/*.resx" />
     </ItemGroup>
     <Delete Files="@(DuplicateResources)" />
   </Target>
