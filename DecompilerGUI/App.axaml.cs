@@ -9,7 +9,7 @@ namespace DecompilerGUI
 {
     public class App : Application
     {
-        public static Window MainWindow { get; private set; }
+        public static Window MainWindow { get; private set; } = null!;
 
         public override void Initialize()
         {
