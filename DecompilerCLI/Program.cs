@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Decomp.Core;
 
@@ -19,7 +20,7 @@ namespace DecompilerCLI
 
                 string inputPath = NormalizePath(args[0]);
                 string? outputPath = args.Length > 1 ? NormalizePath(args[1]) : null;
-                string? gameVersion = args.Length > 2 ? args[2] : null;
+                string gameVersion = args.Length > 2 ? args[2] : "VanillaWarband";
 
                 if (!File.Exists(inputPath) && !Directory.Exists(inputPath))
                 {
@@ -50,7 +51,7 @@ namespace DecompilerCLI
             }
         }
 
-        private static int DecompileFolder(string inputPath, string? outputPath, string? gameVersion)
+        private static int DecompileFolder(string inputPath, string? outputPath, string gameVersion)
         {
             if (outputPath == null)
             {
@@ -108,7 +109,7 @@ namespace DecompilerCLI
             return failedFiles > 0 && processedFiles == 0 ? 1 : 0;
         }
 
-        private static int DecompileSingleFile(string inputPath, string? outputPath, string? gameVersion)
+        private static int DecompileSingleFile(string inputPath, string? outputPath, string gameVersion)
         {
             string outputFile;
 
