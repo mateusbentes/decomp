@@ -74,7 +74,6 @@ namespace DecompilerGUI.ViewModels
             get => _currentLanguage;
             set
             {
-                // Store the previous language to check if it has changed
                 if (_currentLanguage != value)
                 {
                     this.RaiseAndSetIfChanged(ref _currentLanguage, value);
@@ -94,7 +93,6 @@ namespace DecompilerGUI.ViewModels
             new CultureInfo("ru-RU")
         };
 
-        // Propriedades para localização
         public string AppTitle => _localization["AppTitle"];
         public string InputSectionTitle => _localization["InputSectionTitle"];
         public string InputPlaceholder => _localization["InputPlaceholder"];
@@ -121,7 +119,7 @@ namespace DecompilerGUI.ViewModels
         public MainWindowViewModel()
         {
             _localization = new LocalizationService();
-            _currentLanguage = AvailableLanguages[0]; // Define o idioma padrão
+            _currentLanguage = AvailableLanguages[0];
             UpdateStatusMessage();
 
             BrowseInputCommand = ReactiveCommand.CreateFromTask(BrowseInputAsync);
@@ -135,7 +133,7 @@ namespace DecompilerGUI.ViewModels
         {
             _localization.SetLanguage(languageCode);
             UpdateStatusMessage();
-            this.RaisePropertyChanged(string.Empty); // Notifica todas as propriedades
+            this.RaisePropertyChanged(string.Empty);
         }
 
         private void UpdateStatusMessage()
@@ -145,7 +143,7 @@ namespace DecompilerGUI.ViewModels
 
         private void OnLogMessageReceived(string message)
         {
-            LogOutput += $"{DateTime.Now:HH:mm:ss} {message}\n";
+            LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
         }
 
         private async Task BrowseInputAsync()
@@ -191,14 +189,14 @@ namespace DecompilerGUI.ViewModels
         {
             if (string.IsNullOrWhiteSpace(InputPath))
             {
-                LogOutput += $"[ERROR] {ErrorNoInput}\n";
+                LogOutput += $"[ERROR] {ErrorNoInput}{Environment.NewLine}";
                 StatusMessage = ErrorNoInput;
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(OutputPath))
             {
-                LogOutput += $"[ERROR] {ErrorNoOutput}\n";
+                LogOutput += $"[ERROR] {ErrorNoOutput}{Environment.NewLine}";
                 StatusMessage = ErrorNoOutput;
                 return;
             }
@@ -209,7 +207,7 @@ namespace DecompilerGUI.ViewModels
             }
             catch (Exception ex)
             {
-                LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}\n";
+                LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}{Environment.NewLine}";
                 StatusMessage = ErrorCreateOutput;
                 return;
             }
@@ -250,7 +248,7 @@ namespace DecompilerGUI.ViewModels
                             }
                             catch (Exception ex)
                             {
-                                LogOutput += $"[ERROR] {FailedToProcess} {Path.GetFileName(file)}: {ex.Message}\n";
+                                Decompiler.RaiseLogMessage($"[ERROR] {FailedToProcess} {Path.GetFileName(file)}: {ex.Message}");
                             }
                         }
                     }
@@ -266,10 +264,10 @@ namespace DecompilerGUI.ViewModels
             catch (Exception ex)
             {
                 StatusMessage = StatusError;
-                LogOutput += $"[FATAL ERROR] {ex.Message}\n";
+                Decompiler.RaiseLogMessage($"[FATAL ERROR] {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    LogOutput += $"[DETAIL] {ex.InnerException.Message}\n";
+                    Decompiler.RaiseLogMessage($"[DETAIL] {ex.InnerException.Message}");
                 }
             }
             finally
