@@ -149,7 +149,7 @@ namespace DecompilerGUI.ViewModels
         {
             Dispatcher.UIThread.Post(() =>
             {
-                LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
+                LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
                 this.RaisePropertyChanged(nameof(LogOutput));
             });
         }
