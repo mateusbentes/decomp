@@ -52,23 +52,29 @@ Bash
 
 To build production-ready, self-contained single-file executables for all platforms, ensure the core engine is built, then trigger the publish commands:
 
-indows
+Windows X86 64 Bits
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decomp`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
 
-`dotnet publish DecompilerGUI/ecompilerGUI.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
+Windows Arm 64 Bits
 
-macOS
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
+macOS Intel
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
 
-Linux
+macOS Apple Silicon
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
+Linux x86 64 Bits
+
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
+
+Linux Arm 64 Bits
+
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
 
 ⚠️ IMPORTANT!!!
 
