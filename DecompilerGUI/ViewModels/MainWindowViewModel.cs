@@ -74,8 +74,10 @@ namespace DecompilerGUI.ViewModels
             get => _currentLanguage;
             set
             {
-                if (this.RaiseAndSetIfChanged(ref _currentLanguage, value))
+                // Store the previous language to check if it has changed
+                if (_currentLanguage != value)
                 {
+                    this.RaiseAndSetIfChanged(ref _currentLanguage, value);
                     ChangeLanguage(value.Name);
                 }
             }
