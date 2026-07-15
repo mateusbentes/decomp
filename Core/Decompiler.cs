@@ -60,6 +60,8 @@ namespace Decomp.Core
                     .GroupBy(op => op.Code)
                     .ToDictionary(g => g.Key, g => g.First());
 
+                Common.Operators = operators;
+
                 using var input = new Text(inputFilePath);
                 using var output = outputFilePath == null
                     ? new FileWriter(Console.Out)

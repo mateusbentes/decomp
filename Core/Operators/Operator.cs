@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Decomp.Core.Operators
@@ -77,108 +78,107 @@ namespace Decomp.Core.Operators
         public int Code { get; set; }
         public IReadOnlyDictionary<int, Parameter> Parameters { get; set; } = new Dictionary<int, Parameter>();
 
-        private void Initialize(string value, int code)
-        {
-            Value = value ?? string.Empty;
-            Code = code;
-            Parameters = new Dictionary<int, Parameter>(16);
-        }
-
         public Operator(string value, int code)
         {
-            Initialize(value, code);
+            Value = value;
+            Code = code;
+            Parameters = new Dictionary<int, Parameter>();
         }
 
-        public Operator(string value, int code, params Parameter[] @params)
+        public Operator(string value, int code, params Parameter[] parameters)
         {
-            Initialize(value, code);
-
-            var p = new Dictionary<int, Parameter>();
-            for (int i = 0; i < @params.Length; i++) p[i] = @params[i];
-            Parameters = p;
+            Value = value;
+            Code = code;
+            var paramDict = new Dictionary<int, Parameter>();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                paramDict[i] = parameters[i];
+            }
+            Parameters = paramDict;
         }
 
         public string GetParameter(int index, string? s)
         {
             if (s == null) return string.Empty;
 
-            var b = ulong.TryParse(s, out var t);
-            if (!b) return s;
+            if (!ulong.TryParse(s, out var t))
+                return s;
 
-            if (t > 0x00FFFFFFFFFFFFFF) return Common.GetParam(t);
-
-            if (!Parameters.TryGetValue(index, out var parameter)) return s;
+            if (!Parameters.TryGetValue(index, out var parameter))
+                return s;
 
             return parameter switch
             {
                 Parameter.None => s,
                 Parameter.FaceKeyRegister => Common.GetFaceKey(t),
-                Parameter.FloatRegister => "fp" + s,
+                Parameter.FloatRegister => $"fp{(int)t}",
                 Parameter.GameKeyCode => Common.GetGameKey(t),
-                Parameter.KeyCode => Common.GetKey(t),
-                Parameter.Position => "pos" + s,
-                Parameter.String => "s" + s,
+                Parameter.KeyCode => Common.GetKeyCode(t),
+                Parameter.Position => $"pos{(int)t}",
+                Parameter.String => $"s{(int)t}",
                 Parameter.InventorySlot => Common.GetInventorySlot(t),
                 Parameter.Tooltip => Common.GetTooltip(t),
                 Parameter.Color => Common.GetColor(t),
-                Parameter.TextFlags => Common.DecompileTextFlags((uint)t),
                 Parameter.Alpha => Common.GetAlpha(t),
+                Parameter.TextFlags => Common.DecompileTextFlags((uint)t),
                 Parameter.MenuFlags => Menus.DecompileFlags(t),
                 Parameter.TroopFlags => Troops.DecompileFlags((uint)t),
                 Parameter.WeaponProficiency => Common.GetWeaponProficiency(t),
                 Parameter.CharacterAttribute => Common.GetCharacterAttribute(t),
                 Parameter.PartyFlags => Parties.DecompileFlags((uint)t),
-                Parameter.AiBehavior => Parties.GetAiBehavior(t),
+                Parameter.AiBehavior => Common.GetPartyBehavior(t),
                 Parameter.ItemProperty => Items.DecompileFlags(t),
                 Parameter.ItemCapability => Items.DecompileCapabilities(t),
-                Parameter.TroopIdentifier => Common.GetCommonIdentifier("trp", Common.Troops, t),
-                Parameter.ItemIdentifier => Common.GetCommonIdentifier("itm", Common.Items, t),
-                Parameter.PartyIdentifier => Common.GetCommonIdentifier("p", Common.Parties, t),
-                Parameter.AnimationIdentifier => Common.GetCommonIdentifier("anim", Common.Animations, t),
-                Parameter.ScenePropIdentifier => Common.GetCommonIdentifier("spr", Common.SceneProps, t),
-                Parameter.SceneIdentifier => Common.GetCommonIdentifier("scn", Common.Scenes, t),
-                Parameter.FactionIdentifier => Common.GetCommonIdentifier("fac", Common.Factions, t),
-                Parameter.TableauMaterialIdentifier => Common.GetCommonIdentifier("tableau", Common.Tableaus, t),
-                Parameter.QuestIdentifier => Common.GetCommonIdentifier("qst", Common.Quests, t),
-                Parameter.PartyTemplateIdentifier => Common.GetCommonIdentifier("pt", Common.PTemps, t),
-                Parameter.InfoPageIdentifier => Common.GetCommonIdentifier("ip", Common.InfoPages, t),
-                Parameter.SkillIdentifier => Common.GetCommonIdentifier("skl", Common.Skills, t),
-                Parameter.MapIconIdentifier => Common.GetCommonIdentifier("icon", Common.MapIcons, t),
-                Parameter.MeshIdentifier => Common.GetCommonIdentifier("mesh", Common.Meshes, t),
+                Parameter.TroopIdentifier => Common.GetCommonIdentifier("trp_", Common.Troops, (int)t),
+                Parameter.ItemIdentifier => Common.GetCommonIdentifier("itm_", Common.Items, (int)t),
+                Parameter.PartyIdentifier => Common.GetCommonIdentifier("p_", Common.Parties, (int)t),
+                Parameter.AnimationIdentifier => Common.GetCommonIdentifier("anim_", Common.Animations, (int)t),
+                Parameter.ScenePropIdentifier => Common.GetCommonIdentifier("spr_", Common.SceneProps, (int)t),
+                Parameter.SceneIdentifier => Common.GetCommonIdentifier("scn_", Common.Scenes, (int)t),
+                Parameter.FactionIdentifier => Common.GetCommonIdentifier("fac_", Common.Factions, (int)t),
+                Parameter.TableauMaterialIdentifier => Common.GetCommonIdentifier("tableau_", Common.Tableaus, (int)t),
+                Parameter.QuestIdentifier => Common.GetCommonIdentifier("qst_", Common.Quests, (int)t),
+                Parameter.PartyTemplateIdentifier => Common.GetCommonIdentifier("pt_", Common.PartyTemplates, (int)t),
+                Parameter.InfoPageIdentifier => Common.GetCommonIdentifier("ip_", Common.InfoPages, (int)t),
+                Parameter.SkillIdentifier => Common.GetCommonIdentifier("skl_", Common.Skills, (int)t),
+                Parameter.MapIconIdentifier => Common.GetCommonIdentifier("icon_", Common.MapIcons, (int)t),
+                Parameter.MeshIdentifier => Common.GetCommonIdentifier("mesh_", Common.Meshes, (int)t),
                 Parameter.ItemType => Items.DecompileType(t),
-                Parameter.SoundIdentifier => Common.GetCommonIdentifier("snd", Common.Sounds, t),
+                Parameter.SoundIdentifier => Common.GetCommonIdentifier("snd_", Common.Sounds, (int)t),
                 Parameter.SoundFlags => Sounds.DecompileFlags((uint)t),
-                Parameter.ScriptIdentifier => Common.GetCommonIdentifier("script", Common.Procedures, t),
-                Parameter.ParticleSystemIdentifier => Common.GetCommonIdentifier("psys", Common.ParticleSystems, t),
+                Parameter.ScriptIdentifier => Common.GetCommonIdentifier("script_", Common.Procedures, (int)t),
+                Parameter.ParticleSystemIdentifier => Common.GetCommonIdentifier("psys_", Common.ParticleSystems, (int)t),
                 Parameter.AttributeIdentifier => Troops.DecompileCharacterAttribute((uint)t),
                 Parameter.ItemModifier => Items.DecompileModifier((uint)t),
-                Parameter.MenuIdentifier => Common.GetCommonIdentifier("mnu", Common.Menus, t),
-                Parameter.PresentationIdentifier => Common.GetCommonIdentifier("prsnt", Common.Presentations, t),
-                Parameter.TrackIdentifier => Common.GetCommonIdentifier("track", Common.Music, t),
+                Parameter.MenuIdentifier => Common.GetCommonIdentifier("mnu_", Common.Menus, (int)t),
+                Parameter.PresentationIdentifier => Common.GetCommonIdentifier("prsnt_", Common.Presentations, (int)t),
+                Parameter.TrackIdentifier => Common.GetCommonIdentifier("track_", Common.Music, (int)t),
                 Parameter.MusicFlags => Music.DecompileFlags((uint)t),
                 Parameter.EquipmentOverrideFlags => MissionTemplates.DecompileAlterFlags((uint)t),
-                Parameter.MissionTemplateIdentifier => Common.GetCommonIdentifier("mt", Common.MissionTemplates, t),
+                Parameter.MissionTemplateIdentifier => Common.GetCommonIdentifier("mt_", Common.MissionTemplates, (int)t),
                 Parameter.SceneFlags => Scenes.DecompileFlags((uint)t),
                 Parameter.SortMode => Common.DecompileSortMode(t),
-                Parameter.SkinIdentifier => Common.GetCommonIdentifier("tf_", Common.Skins, t),
-                _ => s,
+                Parameter.SkinIdentifier => Common.GetCommonIdentifier("tf_", Common.Skins, (int)t),
+                _ => s
             };
         }
 
-        public static IEnumerable<Operator> GetCollection(IEnumerable<IGameVersion>? versions)
+        public static IEnumerable<Operator> GetCollection(IEnumerable<Operator> operators)
         {
-            if (versions == null) return Enumerable.Empty<Operator>();
-            return versions.SelectMany(x => x.GetOperators());
+            return operators;
         }
 
-        public static IEnumerable<Operator> GetCollection(Mode m) => m switch
+        public static IEnumerable<Operator> GetCollection(Mode m)
         {
-            Mode.Caribbean => GetCollection(new List<IGameVersion> { new CaribbeanVersion() }),
-            Mode.WarbandScriptEnhancer450 => GetCollection(new List<IGameVersion> { new Warband1171Version(), new WarbandScriptEnhancer450Version() }),
-            Mode.WarbandScriptEnhancer320 => GetCollection(new List<IGameVersion> { new Warband1153Version(), new WarbandScriptEnhancer320Version() }),
-            Mode.Vanilla => GetCollection(new List<IGameVersion> { new VanillaVersion() }),
-            _ => throw new ArgumentOutOfRangeException(nameof(m), m, null),
-        };
+            return m switch
+            {
+                Mode.Caribbean => new CaribbeanVersion().GetOperators(),
+                Mode.WarbandScriptEnhancer450 => new WarbandScriptEnhancer450Version().GetOperators(),
+                Mode.WarbandScriptEnhancer320 => new WarbandScriptEnhancer320Version().GetOperators(),
+                Mode.Vanilla => new VanillaVersion().GetOperators(),
+                _ => throw new ArgumentOutOfRangeException(nameof(m), m, null)
+            };
+        }
     }
 #pragma warning restore CA1716 // Identifiers should not match keywords
 
