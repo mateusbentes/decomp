@@ -1,6 +1,8 @@
 using Avalonia;
 using System;
 using System.Runtime.InteropServices;
+using Avalonia.ReactiveUI;
+using ReactiveUI;
 
 namespace DecompilerGUI
 {
@@ -11,6 +13,8 @@ namespace DecompilerGUI
         {
             try
             {
+                RxApp.MainThreadScheduler = AvaloniaScheduler.Instance;
+
                 BuildAvaloniaApp()
                     .StartWithClassicDesktopLifetime(args);
             }
