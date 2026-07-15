@@ -8,80 +8,79 @@ namespace Decomp.Core
     public class Text : IDisposable
     {
         private readonly StreamReader _reader;
-        private readonly StringBuilder _sb = new();
+        private readonly StringBuilder _stringBuilder = new();
         private bool _disposed;
 
-        public Text(string fileName)
+        public Text(string filePath)
         {
-            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
-            _reader = new StreamReader(fileName, Encoding.UTF8);
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+
+            _reader = new StreamReader(filePath, Encoding.UTF8);
         }
 
         public int Peek() => _reader.Peek();
 
-        public string GetWord()
+        public string ReadWord()
         {
-            _sb.Clear();
+            _stringBuilder.Clear();
             while (Peek() != -1)
             {
-                char c = (char)_reader.Read();
-                if (char.IsWhiteSpace(c))
+                var character = (char)_reader.Read();
+                if (char.IsWhiteSpace(character))
                 {
-                    if (_sb.Length > 0) break;
+                    if (_stringBuilder.Length > 0) break;
                     continue;
                 }
-                _sb.Append(c);
+                _stringBuilder.Append(character);
             }
-            return _sb.ToString();
+            return _stringBuilder.ToString();
         }
 
-        public long GetInt64()
+        public long ReadInt64()
         {
-            string s = GetWord();
-            return long.TryParse(s, out long result) ? result : 0;
+            var word = ReadWord();
+            return long.TryParse(word, out var result) ? result : 0;
         }
 
-        public ulong GetUInt64()
+        public ulong ReadUInt64()
         {
-            string s = GetWord();
-            return ulong.TryParse(s, out ulong result) ? result : 0;
+            var word = ReadWord();
+            return ulong.TryParse(word, out var result) ? result : 0;
         }
 
-        public int GetInt() => (int)GetInt64();
-        public uint GetUInt() => (uint)GetUInt64();
-        public uint GetDWord() => (uint)GetUInt64();
+        public int ReadInt() => (int)ReadInt64();
+        public uint ReadUInt() => (uint)ReadUInt64();
+        public uint ReadDWord() => (uint)ReadUInt64();
 
-        public double GetDouble()
+        public double ReadDouble()
         {
-            string s = GetWord();
-            return double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out double result) ? result : 0.0;
+            var word = ReadWord();
+            return double.TryParse(word, NumberStyles.Any, CultureInfo.InvariantCulture, out var result)
+                ? result
+                : 0.0;
         }
 
-        public string GetString() => _reader.ReadLine() ?? string.Empty;
+        public string? ReadLine() => _reader.ReadLine();
 
-        public void Close()
+        public void Close() => _reader.Close();
+
+        public static string? GetFirstLineFromFile(string filePath)
         {
-            _reader.Close();
-        }
+            if (!File.Exists(filePath)) return null;
 
-        public static string GetFirstStringFromFile(string sFileName)
-        {
-            if (!File.Exists(sFileName)) return string.Empty;
-
-            using var f = new StreamReader(sFileName);
-            return f.ReadLine() ?? string.Empty;
+            using var reader = new StreamReader(filePath);
+            return reader.ReadLine();
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    _reader.Dispose();
-                }
-                _disposed = true;
-            }
+            if (_disposed) return;
+
+            if (disposing)
+                _reader.Dispose();
+
+            _disposed = true;
         }
 
         public void Dispose()
