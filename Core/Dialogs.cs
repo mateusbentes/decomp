@@ -41,22 +41,21 @@ namespace Decomp.Core
                     sbDialogPartner.Append('|');
                 }
 
-                // ReSharper disable once InconsistentNaming
                 const DWORD PARTY_TPL = 0x00020000;
                 DWORD dwPartner = dwDialogPartner & 0x00000FFF;
                 if (dwPartner == 0x00000FFF)
                     sbDialogPartner.Append("anyone|");
-		        else if (dwPartner != 0)
+                else if (dwPartner != 0)
                 {
                     if ((dwDialogPartner & PARTY_TPL) != 0)
-                        sbDialogPartner.Append(dwPartner < Common.PTemps.Count ? "pt_" + Common.PTemps[(int)dwPartner] + "|" : $"{dwPartner}|");
+                        sbDialogPartner.Append(dwPartner < Common.PartyTemplates.Count ? "pt_" + Common.PartyTemplates[(int)dwPartner] + "|" : $"{dwPartner}|");
                     else
                         sbDialogPartner.Append(dwPartner < Common.Troops.Count ? "trp_" + Common.Troops[(int)dwPartner] + "|" : $"{dwPartner}|");
                 }
                 DWORD dwOther = (dwDialogPartner & 0xFFF00000) >> 20;
                 if (dwOther != 0)
                     sbDialogPartner.Append(dwOther < Common.Troops.Count ? "other(trp_" + Common.Troops[(int)dwOther] + ")|" : $"other({dwOther})|");
-                
+
                 if (sbDialogPartner.Length == 0)
                     sbDialogPartner.Append('0');
                 else

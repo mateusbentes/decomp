@@ -1,0 +1,3 @@
+<ItemGroup>
+    <Compile Remove="Core/Vanilla/Dialogs.cs" />
+</ItemGroup>

@@ -50,7 +50,6 @@ namespace Decomp.Core.Vanilla
                     else
                         sbDialogPartner.Append(dwPartner < Common.Troops.Count ? "trp_" + Common.Troops[(int)dwPartner] + "|" : $"{dwPartner}|");
                 }
-
                 DWORD dwOther = (dwDialogPartner & 0xFFF00000) >> 20;
                 if (dwOther != 0)
                     sbDialogPartner.Append(dwOther < Common.Troops.Count ? "other(trp_" + Common.Troops[(int)dwOther] + ")|" : $"other({dwOther})|");
@@ -59,7 +58,7 @@ namespace Decomp.Core.Vanilla
                     sbDialogPartner.Append('0');
                 else
                     sbDialogPartner.Length--;
-                
+
                 if (iStartingDialogState < Common.DialogStates.Count)
                     fSource.Write("  [{0}, \"{1}\",\r\n    [", sbDialogPartner, Common.DialogStates[iStartingDialogState]);
                 else
@@ -79,7 +78,7 @@ namespace Decomp.Core.Vanilla
                 fSource.WriteLine("    \"{0}\",", strDialogText.Replace('_', ' '));
 
                 int iEndingDialogState = fDialogs.GetInt();
-                
+
                 if (iEndingDialogState < Common.DialogStates.Count)
                     fSource.Write("    \"{0}\",\r\n    [", Common.DialogStates[iEndingDialogState]);
                 else
