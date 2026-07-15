@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
         x:Class="DecompilerGUI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/knight.ico"
+        Icon="avares://DecompilerGUI/Assets/knight.ico"
         Title="{CompiledBinding AppTitle}"
         Background="#2D2D30"
         Width="900" Height="600"
