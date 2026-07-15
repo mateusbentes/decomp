@@ -54,7 +54,7 @@ namespace Decomp.Core
                 aTroops[i] = strTroopId.Remove(0, 4);
 
                 for (int j = 0; j < 163; j++) fId.GetWord();
-                if (Common.SelectedMode == Mode.Caribbean) fId.GetWord();
+                if (Common.SelectedMode == GameMode.Caribbean) fId.GetWord();
             }
             fId.Close();
 
@@ -229,7 +229,7 @@ namespace Decomp.Core
 
                 var strFace =
                     $"0x{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}, 0x{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}{fTroops.GetUInt64():x16}";
-                if (Common.SelectedMode == Mode.Caribbean) fTroops.GetWord();
+                if (Common.SelectedMode == GameMode.Caribbean) fTroops.GetWord();
                 fSource.WriteLine("{0}],", strFace);
             }
 
