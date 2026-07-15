@@ -50,7 +50,9 @@ namespace Decomp.Core
         }
 
         public int ReadInt() => (int)ReadInt64();
+
         public uint ReadUInt() => (uint)ReadUInt64();
+
         public uint ReadDWord() => (uint)ReadUInt64();
 
         public double ReadDouble()
@@ -62,6 +64,26 @@ namespace Decomp.Core
         }
 
         public string? ReadLine() => _reader.ReadLine();
+
+        public string GetString()
+        {
+            var line = ReadLine();
+            return line ?? string.Empty;
+        }
+
+        public int GetInt() => ReadInt();
+
+        public uint GetUInt() => ReadUInt();
+
+        public long GetInt64() => ReadInt64();
+
+        public ulong GetUInt64() => ReadUInt64();
+
+        public uint GetDWord() => ReadDWord();
+
+        public double GetDouble() => ReadDouble();
+
+        public string GetWord() => ReadWord();
 
         public void Close() => _reader.Close();
 
