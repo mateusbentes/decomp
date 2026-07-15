@@ -52,20 +52,23 @@ Bash
 
 To build production-ready, self-contained single-file executables for all platforms, ensure the core engine is built, then trigger the publish commands:
 
-Windows
+indows
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decomp`
+
+`dotnet publish DecompilerGUI/ecompilerGUI.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
 
 macOS
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
+
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
 
 Linux
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=tru`
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
+
+`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:AssemblyName=Decom`
 
 ⚠️ IMPORTANT!!!
 

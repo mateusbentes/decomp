@@ -25,9 +25,7 @@ namespace DecompilerGUI
         {
             var builder = AppBuilder.Configure<App>()
                 .UsePlatformDetect()
-                .WithInterFont()
-                .LogToTrace()
-                .UseReactiveUI();
+                .LogToTrace();
 
             // Platform-specific configurations
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
