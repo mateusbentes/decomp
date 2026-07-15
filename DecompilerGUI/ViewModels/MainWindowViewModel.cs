@@ -79,7 +79,8 @@ namespace DecompilerGUI.ViewModels
                 if (_currentLanguage != value)
                 {
                     this.RaiseAndSetIfChanged(ref _currentLanguage, value);
-                    ChangeLanguage(value?.Name ?? "en-US");
+                    // Safely post language change to UI Thread to prevent Rx concurrency exceptions
+                    Dispatcher.UIThread.Post(() => ChangeLanguage(value?.Name ?? "en-US"));
                 }
             }
         }
@@ -122,20 +123,21 @@ namespace DecompilerGUI.ViewModels
         {
             _localization = new LocalizationService();
             _currentLanguage = AvailableLanguages[0];
-            UpdateStatusMessage();
-
+            
+            // Explicitly route execution to the UI thread scheduler to dodge Thread Access crashes
             BrowseInputCommand = ReactiveCommand.CreateFromTask(BrowseInputAsync, outputScheduler: RxApp.MainThreadScheduler);
             BrowseOutputCommand = ReactiveCommand.CreateFromTask(BrowseOutputAsync, outputScheduler: RxApp.MainThreadScheduler);
             DecompileCommand = ReactiveCommand.CreateFromTask(DecompileAsync, outputScheduler: RxApp.MainThreadScheduler);
 
             Decompiler.LogMessage += OnLogMessageReceived;
+            UpdateStatusMessage();
         }
 
         private void ChangeLanguage(string languageCode)
         {
             _localization.SetLanguage(languageCode);
             UpdateStatusMessage();
-            Dispatcher.UIThread.Post(() => this.RaisePropertyChanged(string.Empty));
+            this.RaisePropertyChanged(string.Empty);
         }
 
         private void UpdateStatusMessage()
@@ -147,7 +149,7 @@ namespace DecompilerGUI.ViewModels
         {
             Dispatcher.UIThread.Post(() =>
             {
-                LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
+                LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
                 this.RaisePropertyChanged(nameof(LogOutput));
             });
         }
@@ -324,14 +326,9 @@ namespace DecompilerGUI.ViewModels
             if (string.IsNullOrEmpty(path))
                 return path;
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return path.Replace('/', '\\');
-            }
-            else
-            {
-                return path.Replace('\\', '/');
-            }
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? path.Replace('/', '\\')
+                : path.Replace('\\', '/');
         }
     }
 }
