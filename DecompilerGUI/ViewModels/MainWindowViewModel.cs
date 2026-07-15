@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -123,9 +124,9 @@ namespace DecompilerGUI.ViewModels
             _currentLanguage = AvailableLanguages[0];
             UpdateStatusMessage();
 
-            BrowseInputCommand = ReactiveCommand.CreateFromTask(BrowseInputAsync);
-            BrowseOutputCommand = ReactiveCommand.CreateFromTask(BrowseOutputAsync);
-            DecompileCommand = ReactiveCommand.CreateFromTask(DecompileAsync);
+            BrowseInputCommand = ReactiveCommand.CreateFromTask(BrowseInputAsync, outputScheduler: RxApp.MainThreadScheduler);
+            BrowseOutputCommand = ReactiveCommand.CreateFromTask(BrowseOutputAsync, outputScheduler: RxApp.MainThreadScheduler);
+            DecompileCommand = ReactiveCommand.CreateFromTask(DecompileAsync, outputScheduler: RxApp.MainThreadScheduler);
 
             Decompiler.LogMessage += OnLogMessageReceived;
         }
@@ -134,7 +135,7 @@ namespace DecompilerGUI.ViewModels
         {
             _localization.SetLanguage(languageCode);
             UpdateStatusMessage();
-            this.RaisePropertyChanged(string.Empty);
+            Dispatcher.UIThread.Post(() => this.RaisePropertyChanged(string.Empty));
         }
 
         private void UpdateStatusMessage()
@@ -144,7 +145,11 @@ namespace DecompilerGUI.ViewModels
 
         private void OnLogMessageReceived(string message)
         {
-            Dispatcher.UIThread.Post(() => LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}");
+            Dispatcher.UIThread.Post(() =>
+            {
+                LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
+                this.RaisePropertyChanged(nameof(LogOutput));
+            });
         }
 
         private async Task BrowseInputAsync()
@@ -190,15 +195,21 @@ namespace DecompilerGUI.ViewModels
         {
             if (string.IsNullOrWhiteSpace(InputPath))
             {
-                Dispatcher.UIThread.Post(() => LogOutput += $"[ERROR] {ErrorNoInput}{Environment.NewLine}");
-                Dispatcher.UIThread.Post(() => StatusMessage = ErrorNoInput);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    LogOutput += $"[ERROR] {ErrorNoInput}{Environment.NewLine}";
+                    StatusMessage = ErrorNoInput;
+                });
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(OutputPath))
             {
-                Dispatcher.UIThread.Post(() => LogOutput += $"[ERROR] {ErrorNoOutput}{Environment.NewLine}");
-                Dispatcher.UIThread.Post(() => StatusMessage = ErrorNoOutput);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    LogOutput += $"[ERROR] {ErrorNoOutput}{Environment.NewLine}";
+                    StatusMessage = ErrorNoOutput;
+                });
                 return;
             }
 
@@ -208,8 +219,11 @@ namespace DecompilerGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Dispatcher.UIThread.Post(() => LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}{Environment.NewLine}");
-                Dispatcher.UIThread.Post(() => StatusMessage = ErrorCreateOutput);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}{Environment.NewLine}";
+                    StatusMessage = ErrorCreateOutput;
+                });
                 return;
             }
 
@@ -267,12 +281,15 @@ namespace DecompilerGUI.ViewModels
             }
             catch (Exception ex)
             {
-                Dispatcher.UIThread.Post(() => StatusMessage = StatusError);
-                Decompiler.RaiseLogMessage($"[FATAL ERROR] {ex.Message}");
-                if (ex.InnerException != null)
+                Dispatcher.UIThread.Post(() =>
                 {
-                    Decompiler.RaiseLogMessage($"[DETAIL] {ex.InnerException.Message}");
-                }
+                    StatusMessage = StatusError;
+                    LogOutput += $"[FATAL ERROR] {ex.Message}{Environment.NewLine}";
+                    if (ex.InnerException != null)
+                    {
+                        LogOutput += $"[DETAIL] {ex.InnerException.Message}{Environment.NewLine}";
+                    }
+                });
             }
             finally
             {
