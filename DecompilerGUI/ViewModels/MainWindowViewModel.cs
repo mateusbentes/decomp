@@ -25,6 +25,7 @@ namespace DecompilerGUI.ViewModels
         private bool _isIndeterminateProgress;
         private string _logOutput = string.Empty;
         private string _statusMessage = string.Empty;
+        private CultureInfo _currentLanguage;
 
         public string InputPath
         {
@@ -68,6 +69,18 @@ namespace DecompilerGUI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
         }
 
+        public CultureInfo CurrentLanguage
+        {
+            get => _currentLanguage;
+            set
+            {
+                if (this.RaiseAndSetIfChanged(ref _currentLanguage, value))
+                {
+                    ChangeLanguage(value.Name);
+                }
+            }
+        }
+
         public List<string> AvailableVersions { get; } = new()
         {
             "VanillaClassic", "VanillaWarband", "Warband1171", "VanillaWFS", "WSE320", "WSE450", "Caribbean"
@@ -79,20 +92,39 @@ namespace DecompilerGUI.ViewModels
             new CultureInfo("ru-RU")
         };
 
+        // Propriedades para localização
+        public string AppTitle => _localization["AppTitle"];
+        public string InputSectionTitle => _localization["InputSectionTitle"];
+        public string InputPlaceholder => _localization["InputPlaceholder"];
+        public string BrowseButton => _localization["BrowseButton"];
+        public string OutputSectionTitle => _localization["OutputSectionTitle"];
+        public string OutputPlaceholder => _localization["OutputPlaceholder"];
+        public string EngineVersionTitle => _localization["EngineVersionTitle"];
+        public string DecompileButton => _localization["DecompileButton"];
+        public string StatusReady => _localization["StatusReady"];
+        public string SelectedInput => _localization["SelectedInput"];
+        public string OutputFolder => _localization["OutputFolder"];
+        public string ErrorNoInput => _localization["ErrorNoInput"];
+        public string ErrorNoOutput => _localization["ErrorNoOutput"];
+        public string ErrorCreateOutput => _localization["ErrorCreateOutput"];
+        public string StatusDecompiling => _localization["StatusDecompiling"];
+        public string StatusCompleted => _localization["StatusCompleted"];
+        public string StatusError => _localization["StatusError"];
+        public string FailedToProcess => _localization["FailedToProcess"];
+
         public ReactiveCommand<Unit, Unit> BrowseInputCommand { get; }
         public ReactiveCommand<Unit, Unit> BrowseOutputCommand { get; }
         public ReactiveCommand<Unit, Unit> DecompileCommand { get; }
-        public ReactiveCommand<string, Unit> ChangeLanguageCommand { get; }
 
         public MainWindowViewModel()
         {
             _localization = new LocalizationService();
+            _currentLanguage = AvailableLanguages[0]; // Define o idioma padrão
             UpdateStatusMessage();
 
             BrowseInputCommand = ReactiveCommand.CreateFromTask(BrowseInputAsync);
             BrowseOutputCommand = ReactiveCommand.CreateFromTask(BrowseOutputAsync);
             DecompileCommand = ReactiveCommand.CreateFromTask(DecompileAsync);
-            ChangeLanguageCommand = ReactiveCommand.Create<string>(ChangeLanguage);
 
             Decompiler.LogMessage += OnLogMessageReceived;
         }
@@ -101,12 +133,12 @@ namespace DecompilerGUI.ViewModels
         {
             _localization.SetLanguage(languageCode);
             UpdateStatusMessage();
-            this.RaisePropertyChanged(string.Empty);
+            this.RaisePropertyChanged(string.Empty); // Notifica todas as propriedades
         }
 
         private void UpdateStatusMessage()
         {
-            StatusMessage = _localization["StatusReady"];
+            StatusMessage = StatusReady;
         }
 
         private void OnLogMessageReceived(string message)
@@ -119,7 +151,7 @@ namespace DecompilerGUI.ViewModels
             var topLevel = TopLevel.GetTopLevel(App.MainWindow);
             var options = new FilePickerOpenOptions
             {
-                Title = _localization["InputSectionTitle"],
+                Title = InputSectionTitle,
                 AllowMultiple = false
             };
 
@@ -128,7 +160,7 @@ namespace DecompilerGUI.ViewModels
             if (files.Count > 0)
             {
                 InputPath = files[0].Path.LocalPath;
-                StatusMessage = $"{_localization["SelectedInput"]}: {Path.GetFileName(InputPath)}";
+                StatusMessage = $"{SelectedInput}: {Path.GetFileName(InputPath)}";
             }
         }
 
@@ -137,7 +169,7 @@ namespace DecompilerGUI.ViewModels
             var topLevel = TopLevel.GetTopLevel(App.MainWindow);
             var options = new FolderPickerOpenOptions
             {
-                Title = _localization["OutputSectionTitle"]
+                Title = OutputSectionTitle
             };
 
             var folder = await topLevel.StorageProvider.OpenFolderPickerAsync(options);
@@ -145,7 +177,7 @@ namespace DecompilerGUI.ViewModels
             if (folder.Count > 0)
             {
                 OutputPath = folder[0].Path.LocalPath;
-                StatusMessage = $"{_localization["OutputFolder"]}: {OutputPath}";
+                StatusMessage = $"{OutputFolder}: {OutputPath}";
             }
         }
 
@@ -153,15 +185,15 @@ namespace DecompilerGUI.ViewModels
         {
             if (string.IsNullOrWhiteSpace(InputPath))
             {
-                LogOutput += $"[ERROR] {_localization["ErrorNoInput"]}\n";
-                StatusMessage = _localization["ErrorNoInput"];
+                LogOutput += $"[ERROR] {ErrorNoInput}\n";
+                StatusMessage = ErrorNoInput;
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(OutputPath))
             {
-                LogOutput += $"[ERROR] {_localization["ErrorNoOutput"]}\n";
-                StatusMessage = _localization["ErrorNoOutput"];
+                LogOutput += $"[ERROR] {ErrorNoOutput}\n";
+                StatusMessage = ErrorNoOutput;
                 return;
             }
 
@@ -173,15 +205,15 @@ namespace DecompilerGUI.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    LogOutput += $"[ERROR] {_localization["ErrorCreateOutput"]}: {ex.Message}\n";
-                    StatusMessage = _localization["ErrorCreateOutput"];
+                    LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}\n";
+                    StatusMessage = ErrorCreateOutput;
                     return;
                 }
             }
 
             IsIndeterminateProgress = true;
             Progress = 0;
-            StatusMessage = _localization["StatusDecompiling"];
+            StatusMessage = StatusDecompiling;
 
             try
             {
@@ -211,7 +243,7 @@ namespace DecompilerGUI.ViewModels
                             }
                             catch (Exception ex)
                             {
-                                LogOutput += $"[ERROR] {_localization["FailedToProcess"]} {Path.GetFileName(file)}: {ex.Message}\n";
+                                LogOutput += $"[ERROR] {FailedToProcess} {Path.GetFileName(file)}: {ex.Message}\n";
                             }
                         }
                     }
@@ -222,11 +254,11 @@ namespace DecompilerGUI.ViewModels
                     }
                 });
 
-                StatusMessage = _localization["StatusCompleted"];
+                StatusMessage = StatusCompleted;
             }
             catch (Exception ex)
             {
-                StatusMessage = _localization["StatusError"];
+                StatusMessage = StatusError;
                 LogOutput += $"[FATAL ERROR] {ex.Message}\n";
                 if (ex.InnerException != null)
                 {
@@ -274,11 +306,6 @@ namespace DecompilerGUI.ViewModels
             {
                 return path.Replace('\\', '/');
             }
-        }
-
-        public string GetLocalizedString(string key)
-        {
-            return _localization[key];
         }
     }
 }
