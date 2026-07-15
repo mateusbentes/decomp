@@ -74,20 +74,20 @@ namespace Decomp.Core.Operators
 #pragma warning disable CA1716 // Identifiers should not match keywords
     public class Operator
     {
-        public string Value { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public int Code { get; set; }
         public IReadOnlyDictionary<int, Parameter> Parameters { get; set; } = new Dictionary<int, Parameter>();
 
-        public Operator(string value, int code)
+        public Operator(string name, int code)
         {
-            Value = value;
+            Name = name;
             Code = code;
             Parameters = new Dictionary<int, Parameter>();
         }
 
-        public Operator(string value, int code, params Parameter[] parameters)
+        public Operator(string name, int code, params Parameter[] parameters)
         {
-            Value = value;
+            Name = name;
             Code = code;
             var paramDict = new Dictionary<int, Parameter>();
             for (int i = 0; i < parameters.Length; i++)
