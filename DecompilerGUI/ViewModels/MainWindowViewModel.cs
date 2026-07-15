@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -79,7 +78,6 @@ namespace DecompilerGUI.ViewModels
                 if (_currentLanguage != value)
                 {
                     this.RaiseAndSetIfChanged(ref _currentLanguage, value);
-                    // Safely post language change to UI Thread to prevent Rx concurrency exceptions
                     Dispatcher.UIThread.Post(() => ChangeLanguage(value?.Name ?? "en-US"));
                 }
             }
@@ -123,8 +121,7 @@ namespace DecompilerGUI.ViewModels
         {
             _localization = new LocalizationService();
             _currentLanguage = AvailableLanguages[0];
-            
-            // Explicitly route execution to the UI thread scheduler to dodge Thread Access crashes
+
             BrowseInputCommand = ReactiveCommand.CreateFromTask(BrowseInputAsync, outputScheduler: RxApp.MainThreadScheduler);
             BrowseOutputCommand = ReactiveCommand.CreateFromTask(BrowseOutputAsync, outputScheduler: RxApp.MainThreadScheduler);
             DecompileCommand = ReactiveCommand.CreateFromTask(DecompileAsync, outputScheduler: RxApp.MainThreadScheduler);
@@ -169,8 +166,11 @@ namespace DecompilerGUI.ViewModels
 
             if (files.Count > 0)
             {
-                InputPath = files[0].Path.LocalPath;
-                Dispatcher.UIThread.Post(() => StatusMessage = $"{SelectedInput}: {Path.GetFileName(InputPath)}");
+                Dispatcher.UIThread.Post(() =>
+                {
+                    InputPath = files[0].Path.LocalPath;
+                    StatusMessage = $"{SelectedInput}: {Path.GetFileName(InputPath)}";
+                });
             }
         }
 
@@ -188,8 +188,11 @@ namespace DecompilerGUI.ViewModels
 
             if (folder.Count > 0)
             {
-                OutputPath = folder[0].Path.LocalPath;
-                Dispatcher.UIThread.Post(() => StatusMessage = $"{OutputFolder}: {OutputPath}");
+                Dispatcher.UIThread.Post(() =>
+                {
+                    OutputPath = folder[0].Path.LocalPath;
+                    StatusMessage = $"{OutputFolder}: {OutputPath}";
+                });
             }
         }
 
