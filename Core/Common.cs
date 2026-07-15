@@ -204,7 +204,7 @@ from ID_troops import *";
                 -30 => "ti_on_leave_area",
                 -40 => "ti_on_scene_prop_init",
                 -42 => "ti_on_scene_prop_hit",
-                -43 => "ti_on_scene_prop_destroy",
+                -43 => "ti_scene_prop_destroy",
                 -44 => "ti_on_scene_prop_use",
                 -45 => "ti_on_scene_prop_is_animating",
                 -46 => "ti_on_scene_prop_animation_finished",
@@ -697,7 +697,7 @@ from ID_troops import *";
 
         public static bool GenerateIdEnabled { get; set; } = true;
 
-        public static void GenerateIdFile(string fileName, IEnumerable<string> content, string prefix = "")
+        public static void GenerateId(string fileName, IEnumerable<string> content, string prefix = "")
         {
             if (!GenerateIdEnabled || string.IsNullOrEmpty(prefix) || content == null) return;
 
@@ -707,6 +707,13 @@ from ID_troops import *";
             if (prefix.Length > 0 && prefix[^1] != '_') prefix += '_';
             for (var i = 0; i < enumerable.Length; i++)
                 writer.WriteLine($"{prefix}{enumerable[i]} = {i}");
+        }
+
+        public static string GetTriggerParam(double dblParam) => GetTriggerParameter(dblParam);
+
+        public static string GetCommonIdentifier(string prefix, IReadOnlyList<string> array, int index, bool useQuotes = false)
+        {
+            return GetIdentifier(prefix, array, index, useQuotes);
         }
     }
 }
