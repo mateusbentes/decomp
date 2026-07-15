@@ -3,12 +3,11 @@
         xmlns:vm="using:DecompilerGUI.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:lang="clr-namespace:DecompilerGUI.Languages;assembly=DecompilerGUI"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
         x:Class="DecompilerGUI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/knight.ico"
-        Title="{x:Static lang:Strings.AppTitle}"
+        Title="{CompiledBinding AppTitle}"
         Background="#2D2D30"
         Width="900" Height="600"
         MinWidth="800" MinHeight="500">
@@ -20,7 +19,7 @@
     <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="10">
         <!-- Header -->
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                   Text="{x:Static lang:Strings.AppTitle}"
+                   Text="{CompiledBinding AppTitle}"
                    FontSize="20" FontWeight="Bold" Foreground="#FFFFFF"
                    HorizontalAlignment="Center" Margin="0,0,0,15"/>
 
@@ -42,12 +41,12 @@
         <!-- Input Section -->
         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Background="#3E3E42" CornerRadius="5" Padding="10">
             <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Strings.InputSectionTitle}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
+                <TextBlock Text="{CompiledBinding InputSectionTitle}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
                 <Grid ColumnDefinitions="*,Auto">
-                    <TextBox Text="{Binding InputPath}" Watermark="{x:Static lang:Strings.InputPlaceholder}"
+                    <TextBox Text="{Binding InputPath}" Watermark="{CompiledBinding InputPlaceholder}"
                              Background="#1E1E1E" Foreground="#E0E0E0" BorderBrush="#505050" BorderThickness="1"
                              Margin="0,0,5,0"/>
-                    <Button Grid.Column="1" Content="{x:Static lang:Strings.BrowseButton}" Command="{Binding BrowseInputCommand}"
+                    <Button Grid.Column="1" Content="{CompiledBinding BrowseButton}" Command="{Binding BrowseInputCommand}"
                             Margin="5,0,0,0" Width="80" Background="#0E639C" Foreground="White"
                             CornerRadius="3" Padding="5,0"/>
                 </Grid>
@@ -57,12 +56,12 @@
         <!-- Output Section -->
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#3E3E42" CornerRadius="5" Padding="10">
             <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Strings.OutputSectionTitle}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
+                <TextBlock Text="{CompiledBinding OutputSectionTitle}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
                 <Grid ColumnDefinitions="*,Auto">
-                    <TextBox Text="{Binding OutputPath}" Watermark="{x:Static lang:Strings.OutputPlaceholder}"
+                    <TextBox Text="{Binding OutputPath}" Watermark="{CompiledBinding OutputPlaceholder}"
                              Background="#1E1E1E" Foreground="#E0E0E0" BorderBrush="#505050" BorderThickness="1"
                              Margin="0,0,5,0"/>
-                    <Button Grid.Column="1" Content="{x:Static lang:Strings.BrowseButton}" Command="{Binding BrowseOutputCommand}"
+                    <Button Grid.Column="1" Content="{CompiledBinding BrowseButton}" Command="{Binding BrowseOutputCommand}"
                             Margin="5,0,0,0" Width="80" Background="#0E639C" Foreground="White"
                             CornerRadius="3" Padding="5,0"/>
                 </Grid>
@@ -72,7 +71,7 @@
         <!-- Engine Version -->
         <Border Grid.Row="3" Grid.Column="0" Background="#3E3E42" CornerRadius="5" Padding="10">
             <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Strings.EngineVersionTitle}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
+                <TextBlock Text="{CompiledBinding EngineVersionTitle}" FontSize="16" Foreground="#E0E0E0" FontWeight="Medium"/>
                 <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}"
                           Background="#1E1E1E" Foreground="#E0E0E0" BorderBrush="#505050"
                           SelectedIndex="1"/>
@@ -80,7 +79,7 @@
         </Border>
 
         <!-- Decompile Button -->
-        <Button Grid.Row="3" Grid.Column="1" Content="{x:Static lang:Strings.DecompileButton}" Command="{Binding DecompileCommand}"
+        <Button Grid.Row="3" Grid.Column="1" Content="{CompiledBinding DecompileButton}" Command="{Binding DecompileCommand}"
                 FontSize="16" Background="#0078D7" Foreground="White" Height="35" CornerRadius="3"
                 FontWeight="Medium"/>
 
