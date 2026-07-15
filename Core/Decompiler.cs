@@ -90,7 +90,7 @@ namespace Decomp.Core
                                 continue;
                             }
 
-                            output.Write($"\t{op.Value}");
+                            output.Write($"\t{op.Name}");
                             var parameterCount = op.Parameters.Count;
 
                             for (var p = 0; p < parameterCount; p++)

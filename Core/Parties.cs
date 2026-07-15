@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -58,11 +58,11 @@ namespace Decomp.Core
             DWORD dwIcon = dwFlag & 0xFF;
             if (dwIcon != 0)
                 sbFlag.Append(dwIcon < Common.MapIcons.Count ? "icon_" + Common.MapIcons[(int)dwIcon] + "|" : Convert.ToString(dwIcon, CultureInfo.GetCultureInfo("en-US")) + "|");
-            
-            string[] strFlags = { "pf_town", "pf_castle", "pf_village", "pf_disabled", "pf_is_ship", "pf_is_static", "pf_label_medium", 
-            "pf_label_large", "pf_always_visible", "pf_default_behavior", "pf_auto_remove_in_town", "pf_quest_party", "pf_no_label", "pf_limit_members", 
+
+            string[] strFlags = { "pf_town", "pf_castle", "pf_village", "pf_disabled", "pf_is_ship", "pf_is_static", "pf_label_medium",
+            "pf_label_large", "pf_always_visible", "pf_default_behavior", "pf_auto_remove_in_town", "pf_quest_party", "pf_no_label", "pf_limit_members",
             "pf_hide_defenders", "pf_show_faction", "pf_dont_attack_civilians", "pf_civilian" };
-            DWORD[] dwFlags = { 0x406400, 0x405400, 0x204400, 0x00000100, 0x00000200, 0x00000400, 0x00001000, 0x00002000, 0x00004000, 0x00010000, 
+            DWORD[] dwFlags = { 0x406400, 0x405400, 0x204400, 0x00000100, 0x00000200, 0x00000400, 0x00001000, 0x00002000, 0x00004000, 0x00010000,
             0x00020000, 0x00040000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x02000000, 0x04000000 };
             for (int i = 0; i < dwFlags.Length; i++)
             {
@@ -104,19 +104,19 @@ namespace Decomp.Core
                 var iFaction = fParties.GetInt();
                 fSource.Write(", {0}", iFaction < Common.Factions.Count ? "fac_" + Common.Factions[iFaction] : iFaction.ToString(CultureInfo.GetCultureInfo("en-US")));
 
-                var iPersonality = fParties.GetInt(); fParties.GetInt(); 
+                var iPersonality = fParties.GetInt(); fParties.GetInt();
                 fSource.Write(", {0}", iPersonality);
 
-                var iAIbehaviour = fParties.GetInt(); fParties.GetInt(); 
+                var iAIbehaviour = fParties.GetInt(); fParties.GetInt();
                 string[] strAIbehaviours = { "ai_bhvr_hold", "ai_bhvr_travel_to_party", "ai_bhvr_patrol_location", "ai_bhvr_patrol_party",
-			    "ai_bhvr_attack_party", "ai_bhvr_avoid_party", "ai_bhvr_travel_to_point", "ai_bhvr_negotiate_party", "ai_bhvr_in_town",
-			    "ai_bhvr_travel_to_ship", "ai_bhvr_escort_party", "ai_bhvr_driven_by_party" };
+                "ai_bhvr_attack_party", "ai_bhvr_avoid_party", "ai_bhvr_travel_to_point", "ai_bhvr_negotiate_party", "ai_bhvr_in_town",
+                "ai_bhvr_travel_to_ship", "ai_bhvr_escort_party", "ai_bhvr_driven_by_party" };
                 fSource.Write(", {0}", iAIbehaviour <= 11 ? strAIbehaviours[iAIbehaviour] : iAIbehaviour.ToString(CultureInfo.GetCultureInfo("en-US")));
 
-                var iAITargetParty = fParties.GetInt(); 
+                var iAITargetParty = fParties.GetInt();
                 fSource.Write(", {0}", iAITargetParty);
 
-                double dX = fParties.GetDouble(), dY = fParties.GetDouble(); 
+                double dX = fParties.GetDouble(), dY = fParties.GetDouble();
                 fSource.Write(", ({0}, {1}), [", dX.ToString(CultureInfo.GetCultureInfo("en-US")), dY.ToString(CultureInfo.GetCultureInfo("en-US")));
                 fParties.GetDouble(); fParties.GetDouble(); fParties.GetDouble(); fParties.GetDouble(); fParties.GetDouble();
 

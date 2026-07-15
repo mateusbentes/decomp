@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -36,15 +36,15 @@ namespace Decomp.Core
             var wCarriesGoods = (WORD)((dwFlag & 0x00FF000000000000) >> 48);
             var wCarriesGold = (WORD)((dwFlag & 0xFF00000000000000) >> 56);
 
-            if (wIcon != 0) sbFlag.Append(wIcon < Common.MapIcons.Count ? "icon_" + Common.MapIcons[wIcon] + "|" : Convert.ToString(wIcon, CultureInfo.GetCultureInfo("en-US")) + "|"); 
+            if (wIcon != 0) sbFlag.Append(wIcon < Common.MapIcons.Count ? "icon_" + Common.MapIcons[wIcon] + "|" : Convert.ToString(wIcon, CultureInfo.GetCultureInfo("en-US")) + "|");
             if (wCarriesGoods != 0) sbFlag.Append("carries_goods(" + wCarriesGoods + ")|");
             if (wCarriesGold != 0) sbFlag.Append("carries_gold(" + wCarriesGold + ")|");
 
             string[] strFlags = { "pf_disabled", "pf_is_ship", "pf_is_static", "pf_label_medium", "pf_label_large",
-			"pf_always_visible", "pf_default_behavior", "pf_auto_remove_in_town", "pf_quest_party", "pf_no_label", "pf_limit_members",
-			"pf_hide_defenders", "pf_show_faction", "pf_dont_attack_civilians", "pf_civilian" };
+            "pf_always_visible", "pf_default_behavior", "pf_auto_remove_in_town", "pf_quest_party", "pf_no_label", "pf_limit_members",
+            "pf_hide_defenders", "pf_show_faction", "pf_dont_attack_civilians", "pf_civilian" };
             DWORD[] dwFlags = { 0x00000100, 0x00000200, 0x00000400, 0x00001000, 0x00002000, 0x00004000, 0x00010000,
-			0x00020000, 0x00040000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x02000000, 0x04000000 };
+            0x00020000, 0x00040000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x02000000, 0x04000000 };
             for (int i = 0; i < dwFlags.Length; i++)
             {
                 if (((DWORD) dwFlag & dwFlags[i]) == 0) continue;
@@ -74,18 +74,18 @@ namespace Decomp.Core
                     return "bandit_personality";
                 default:
                     var sbPersonality = new StringBuilder((dwPersonality & 0x100) != 0 ? "banditness|" : "", 64);
-                    
+
                     var wCourage = (WORD)(dwPersonality & 0xF);
                     var wAggressiveness = (WORD)((dwPersonality & 0xF0) >> 4);
 
-                    if (wCourage >= 4 && wCourage <= 15) sbPersonality.Append($"courage_{wCourage}|"); 
+                    if (wCourage >= 4 && wCourage <= 15) sbPersonality.Append($"courage_{wCourage}|");
                     if (wAggressiveness > 0 && wAggressiveness <= 15) sbPersonality.Append($"aggressiveness_{wAggressiveness}|");
 
                     if (sbPersonality.Length == 0)
                         sbPersonality.Append('0');
                     else
                         sbPersonality.Length--;
-                    
+
                     return sbPersonality.ToString();
             }
         }
@@ -114,7 +114,6 @@ namespace Decomp.Core
                 var dwPersonality = fTemplates.GetUInt();
                 fSource.Write(", {0}, [", DecompilePersonality(dwPersonality));
 
-                
                 var sbTroopList = new StringBuilder(1024);
                 for (int iStack = 0; iStack < 6; iStack++)
                 {
@@ -132,7 +131,7 @@ namespace Decomp.Core
             fSource.Close();
             fTemplates.Close();
 
-            Common.GenerateId("ID_party_templates.py", Common.PTemps, "pt");
+            Common.GenerateId("ID_party_templates.py", Common.PartyTemplates, "pt");
         }
     }
 }
