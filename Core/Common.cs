@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Decomp.Core.Operators;
 
 namespace Decomp.Core
 {
@@ -65,7 +64,6 @@ from ID_tableau_materials import *
 from ID_troops import *";
 
         public static GameMode SelectedMode { get; set; } = GameMode.WarbandScriptEnhancer450;
-
         public static bool IsVanillaMode => SelectedMode == GameMode.Vanilla;
 
         public static IReadOnlyList<string> Procedures { get; set; } = Array.Empty<string>();
@@ -135,14 +133,6 @@ from ID_troops import *";
             return useQuotes ? $"\"{identifier}\"" : identifier;
         }
 
-        public static IReadOnlyDictionary<int, Operator> Operators { get; set; } = new Dictionary<int, Operator>();
-
-        public static Operator FindOperator(int operatorCode) =>
-            Operators.TryGetValue(operatorCode, out var op) ? op : new Operator(operatorCode.ToString(CultureInfo.InvariantCulture), operatorCode);
-
-        public static string InputPath { get; set; } = string.Empty;
-        public static string OutputPath { get; set; } = string.Empty;
-
         public static string GetParameter(ulong parameter)
         {
             const ulong tagMask = 0xFF00000000000000;
@@ -180,9 +170,11 @@ from ID_troops import *";
             };
         }
 
-        public static string GetTriggerParameter(double parameter)
+        public static string GetTriggerParameter(double dblParam) => GetTriggerParam(dblParam);
+
+        public static string GetTriggerParam(double dblParam)
         {
-            return (int)parameter switch
+            return (int)dblParam switch
             {
                 -2 => "ti_on_game_start",
                 -5 => "ti_simulate_battle",
@@ -238,7 +230,7 @@ from ID_troops import *";
                 -106 => "ti_on_agent_end_reloading",
                 -107 => "ti_on_shield_penetrated",
                 100000000 => "ti_once",
-                _ => parameter.ToString(CultureInfo.InvariantCulture)
+                _ => dblParam.ToString(CultureInfo.InvariantCulture)
             };
         }
 
@@ -298,6 +290,16 @@ from ID_troops import *";
                 output.WriteLine("),");
             }
         }
+
+        public static Operator FindOperator(int operatorCode)
+        {
+            return Operators.TryGetValue(operatorCode, out var op) ? op : new Operator(operatorCode.ToString(CultureInfo.InvariantCulture), operatorCode);
+        }
+
+        public static IReadOnlyDictionary<int, Operator> Operators { get; set; } = new Dictionary<int, Operator>();
+
+        public static string InputPath { get; set; } = string.Empty;
+        public static string OutputPath { get; set; } = string.Empty;
 
         public static string GetKeyCode(ulong keyCode) => keyCode switch
         {
@@ -709,11 +711,20 @@ from ID_troops import *";
                 writer.WriteLine($"{prefix}{enumerable[i]} = {i}");
         }
 
-        public static string GetTriggerParam(double dblParam) => GetTriggerParameter(dblParam);
-
         public static string GetCommonIdentifier(string prefix, IReadOnlyList<string> array, int index, bool useQuotes = false)
         {
-            return GetIdentifier(prefix, array, index, useQuotes);
+            if (index < 0 || index >= array.Count)
+                return useQuotes ? $"\"{prefix}{index}\"" : $"{prefix}{index}";
+
+            return useQuotes ? $"\"{prefix}{array[index]}\"" : $"{prefix}{array[index]}";
+        }
+
+        public static string GetCommonIdentifier(string prefix, IReadOnlyList<string> array, ulong index, bool useQuotes = false)
+        {
+            if (index >= (ulong)array.Count)
+                return useQuotes ? $"\"{prefix}{index}\"" : $"{prefix}{index}";
+
+            return useQuotes ? $"\"{prefix}{array[(int)index]}\"" : $"{prefix}{array[(int)index]}";
         }
     }
 }
