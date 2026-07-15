@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Decomp.Core;
 using DecompilerGUI.Services;
 using ReactiveUI;
@@ -138,12 +139,12 @@ namespace DecompilerGUI.ViewModels
 
         private void UpdateStatusMessage()
         {
-            StatusMessage = StatusReady;
+            Dispatcher.UIThread.Post(() => StatusMessage = StatusReady);
         }
 
         private void OnLogMessageReceived(string message)
         {
-            LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
+            Dispatcher.UIThread.Post(() => LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}");
         }
 
         private async Task BrowseInputAsync()
@@ -162,7 +163,7 @@ namespace DecompilerGUI.ViewModels
             if (files.Count > 0)
             {
                 InputPath = files[0].Path.LocalPath;
-                StatusMessage = $"{SelectedInput}: {Path.GetFileName(InputPath)}";
+                Dispatcher.UIThread.Post(() => StatusMessage = $"{SelectedInput}: {Path.GetFileName(InputPath)}");
             }
         }
 
@@ -181,7 +182,7 @@ namespace DecompilerGUI.ViewModels
             if (folder.Count > 0)
             {
                 OutputPath = folder[0].Path.LocalPath;
-                StatusMessage = $"{OutputFolder}: {OutputPath}";
+                Dispatcher.UIThread.Post(() => StatusMessage = $"{OutputFolder}: {OutputPath}");
             }
         }
 
@@ -189,15 +190,15 @@ namespace DecompilerGUI.ViewModels
         {
             if (string.IsNullOrWhiteSpace(InputPath))
             {
-                LogOutput += $"[ERROR] {ErrorNoInput}{Environment.NewLine}";
-                StatusMessage = ErrorNoInput;
+                Dispatcher.UIThread.Post(() => LogOutput += $"[ERROR] {ErrorNoInput}{Environment.NewLine}");
+                Dispatcher.UIThread.Post(() => StatusMessage = ErrorNoInput);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(OutputPath))
             {
-                LogOutput += $"[ERROR] {ErrorNoOutput}{Environment.NewLine}";
-                StatusMessage = ErrorNoOutput;
+                Dispatcher.UIThread.Post(() => LogOutput += $"[ERROR] {ErrorNoOutput}{Environment.NewLine}");
+                Dispatcher.UIThread.Post(() => StatusMessage = ErrorNoOutput);
                 return;
             }
 
@@ -207,14 +208,17 @@ namespace DecompilerGUI.ViewModels
             }
             catch (Exception ex)
             {
-                LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}{Environment.NewLine}";
-                StatusMessage = ErrorCreateOutput;
+                Dispatcher.UIThread.Post(() => LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}{Environment.NewLine}");
+                Dispatcher.UIThread.Post(() => StatusMessage = ErrorCreateOutput);
                 return;
             }
 
-            IsIndeterminateProgress = true;
-            Progress = 0;
-            StatusMessage = StatusDecompiling;
+            Dispatcher.UIThread.Post(() =>
+            {
+                IsIndeterminateProgress = true;
+                Progress = 0;
+                StatusMessage = StatusDecompiling;
+            });
 
             try
             {
@@ -244,7 +248,7 @@ namespace DecompilerGUI.ViewModels
                                 Decompiler.Decompile(file, outputFile, SelectedVersion);
                                 processedFiles++;
 
-                                Progress = (double)processedFiles / totalFiles * 100;
+                                Dispatcher.UIThread.Post(() => Progress = (double)processedFiles / totalFiles * 100);
                             }
                             catch (Exception ex)
                             {
@@ -259,11 +263,11 @@ namespace DecompilerGUI.ViewModels
                     }
                 });
 
-                StatusMessage = StatusCompleted;
+                Dispatcher.UIThread.Post(() => StatusMessage = StatusCompleted);
             }
             catch (Exception ex)
             {
-                StatusMessage = StatusError;
+                Dispatcher.UIThread.Post(() => StatusMessage = StatusError);
                 Decompiler.RaiseLogMessage($"[FATAL ERROR] {ex.Message}");
                 if (ex.InnerException != null)
                 {
@@ -272,7 +276,7 @@ namespace DecompilerGUI.ViewModels
             }
             finally
             {
-                IsIndeterminateProgress = false;
+                Dispatcher.UIThread.Post(() => IsIndeterminateProgress = false);
             }
         }
 
