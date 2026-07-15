@@ -8,7 +8,7 @@ using Decomp.Core.Operators;
 
 namespace Decomp.Core
 {
-    public enum Mode
+    public enum GameMode
     {
         Caribbean = 3,
         WarbandScriptEnhancer450 = 2,
@@ -64,9 +64,9 @@ from ID_strings import *
 from ID_tableau_materials import *
 from ID_troops import *";
 
-        public static Mode SelectedMode { get; set; } = Mode.WarbandScriptEnhancer450;
+        public static GameMode SelectedMode { get; set; } = GameMode.WarbandScriptEnhancer450;
 
-        public static bool IsVanillaMode => SelectedMode == Mode.Vanilla;
+        public static bool IsVanillaMode => SelectedMode == GameMode.Vanilla;
 
         public static IReadOnlyList<string> Procedures { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> QuickStrings { get; set; } = Array.Empty<string>();
@@ -75,7 +75,7 @@ from ID_troops import *";
         public static IReadOnlyList<string> Troops { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Factions { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Quests { get; set; } = Array.Empty<string>();
-        public static IReadOnlyList<string> PTemps { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> PartyTemplates { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Parties { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Menus { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Sounds { get; set; } = Array.Empty<string>();
@@ -95,211 +95,211 @@ from ID_troops import *";
         public static IReadOnlyList<string> Skins { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> InfoPages { get; set; } = Array.Empty<string>();
 
-        public static string GetCommonIdentifier(string prefix, IList<string> array, int index, bool useQuotes = false)
+        public static string GetIdentifier(string prefix, IList<string> array, int index, bool useQuotes = false)
         {
             ArgumentNullException.ThrowIfNull(array);
             ArgumentNullException.ThrowIfNull(prefix);
 
-            if (index < 0 || index >= array.Count) return index.ToString(CultureInfo.GetCultureInfo("en-US"));
-            var s = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[index];
-            return useQuotes ? "\"" + s + "\"" : s;
+            if (index < 0 || index >= array.Count) return index.ToString(CultureInfo.InvariantCulture);
+            var identifier = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[index];
+            return useQuotes ? $"\"{identifier}\"" : identifier;
         }
 
-        public static string GetCommonIdentifier(string prefix, IList<string> array, ulong index, bool useQuotes = false)
+        public static string GetIdentifier(string prefix, IList<string> array, ulong index, bool useQuotes = false)
         {
             ArgumentNullException.ThrowIfNull(array);
             ArgumentNullException.ThrowIfNull(prefix);
 
-            if (index >= (ulong)array.Count) return index.ToString(CultureInfo.GetCultureInfo("en-US"));
-            var s = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[(int)index];
-            return useQuotes ? "\"" + s + "\"" : s;
+            if (index >= (ulong)array.Count) return index.ToString(CultureInfo.InvariantCulture);
+            var identifier = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[(int)index];
+            return useQuotes ? $"\"{identifier}\"" : identifier;
         }
 
-        public static string GetCommonIdentifier(string prefix, IReadOnlyList<string> array, int index, bool useQuotes = false)
+        public static string GetIdentifier(string prefix, IReadOnlyList<string> array, int index, bool useQuotes = false)
         {
             ArgumentNullException.ThrowIfNull(array);
             ArgumentNullException.ThrowIfNull(prefix);
 
-            if (index < 0 || index >= array.Count) return index.ToString(CultureInfo.GetCultureInfo("en-US"));
-            var s = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[index];
-            return useQuotes ? "\"" + s + "\"" : s;
+            if (index < 0 || index >= array.Count) return index.ToString(CultureInfo.InvariantCulture);
+            var identifier = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[index];
+            return useQuotes ? $"\"{identifier}\"" : identifier;
         }
 
-        public static string GetCommonIdentifier(string prefix, IReadOnlyList<string> array, ulong index, bool useQuotes = false)
+        public static string GetIdentifier(string prefix, IReadOnlyList<string> array, ulong index, bool useQuotes = false)
         {
             ArgumentNullException.ThrowIfNull(array);
             ArgumentNullException.ThrowIfNull(prefix);
 
-            if (index >= (ulong)array.Count) return index.ToString(CultureInfo.GetCultureInfo("en-US"));
-            var s = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[(int)index];
-            return useQuotes ? "\"" + s + "\"" : s;
+            if (index >= (ulong)array.Count) return index.ToString(CultureInfo.InvariantCulture);
+            var identifier = prefix + (prefix.Length > 0 && prefix[^1] == '_' ? "" : "_") + array[(int)index];
+            return useQuotes ? $"\"{identifier}\"" : identifier;
         }
 
         public static IReadOnlyDictionary<int, Operator> Operators { get; set; } = new Dictionary<int, Operator>();
 
-        public static Operator FindOperator(int operatorCode) => Operators.TryGetValue(operatorCode, out var op) ? op : new Operator(operatorCode.ToString(CultureInfo.GetCultureInfo("en-US")), operatorCode);
+        public static Operator FindOperator(int operatorCode) =>
+            Operators.TryGetValue(operatorCode, out var op) ? op : new Operator(operatorCode.ToString(CultureInfo.InvariantCulture), operatorCode);
 
         public static string InputPath { get; set; } = string.Empty;
         public static string OutputPath { get; set; } = string.Empty;
 
-        public static string GetParam(ulong lParam)
+        public static string GetParameter(ulong parameter)
         {
-            ulong lTag = (lParam & 0xFF00000000000000) >> 56;
-            return lTag switch
+            const ulong tagMask = 0xFF00000000000000;
+            var tag = (parameter & tagMask) >> 56;
+            var value = parameter & ~tagMask;
+
+            return tag switch
             {
-                1 => "reg" + ((int)lParam).ToString(CultureInfo.GetCultureInfo("en-US")),
-                2 => ((int)lParam) < Variables.Count ? "\"$" + Variables[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                3 => ((int)lParam) < Strings.Count ? "\"str_" + Strings[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                4 => ((int)lParam) < Items.Count ? "\"itm_" + Items[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                5 => ((int)lParam) < Troops.Count ? "\"trp_" + Troops[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                6 => ((int)lParam) < Factions.Count ? "\"fac_" + Factions[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                7 => ((int)lParam) < Quests.Count ? "\"qst_" + Quests[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                8 => ((int)lParam) < PTemps.Count ? "\"pt_" + PTemps[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                9 => ((int)lParam) < Parties.Count ? "\"p_" + Parties[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                10 => ((int)lParam) < Scenes.Count ? "\"scn_" + Scenes[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                11 => ((int)lParam) < MissionTemplates.Count ? "\"mt_" + MissionTemplates[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                12 => ((int)lParam) < Menus.Count ? "\"mnu_" + Menus[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                13 => ((int)lParam) < Procedures.Count ? "\"script_" + Procedures[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                14 => ((int)lParam) < ParticleSystems.Count ? "\"psys_" + ParticleSystems[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                15 => ((int)lParam) < SceneProps.Count ? "\"spr_" + SceneProps[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                16 => ((int)lParam) < Sounds.Count ? "\"snd_" + Sounds[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                17 => "\":var" + ((int)lParam).ToString(CultureInfo.GetCultureInfo("en-US")) + "\"",
-                18 => ((int)lParam) < MapIcons.Count ? "\"icon_" + MapIcons[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                19 => ((int)lParam) < Skills.Count ? "\"skl_" + Skills[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                20 => ((int)lParam) < Meshes.Count ? "\"mesh_" + Meshes[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                21 => ((int)lParam) < Presentations.Count ? "\"prsnt_" + Presentations[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                22 => ((int)lParam) < QuickStrings.Count ? "\"@" + QuickStrings[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                23 => ((int)lParam) < Music.Count ? "\"track_" + Music[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                24 => ((int)lParam) < Tableaus.Count ? "\"tableau_" + Tableaus[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                25 => ((int)lParam) < Animations.Count ? "\"anim_" + Animations[(int)lParam] + "\"" : $"0x{lParam:x16}",
-                _ => lParam.ToString(CultureInfo.GetCultureInfo("en-US"))
+                1 => $"reg{(int)value}",
+                2 => (int)value < Variables.Count ? $"\"${Variables[(int)value]}\"" : $"0x{parameter:x16}",
+                3 => (int)value < Strings.Count ? $"\"str_{Strings[(int)value]}\"" : $"0x{parameter:x16}",
+                4 => (int)value < Items.Count ? $"\"itm_{Items[(int)value]}\"" : $"0x{parameter:x16}",
+                5 => (int)value < Troops.Count ? $"\"trp_{Troops[(int)value]}\"" : $"0x{parameter:x16}",
+                6 => (int)value < Factions.Count ? $"\"fac_{Factions[(int)value]}\"" : $"0x{parameter:x16}",
+                7 => (int)value < Quests.Count ? $"\"qst_{Quests[(int)value]}\"" : $"0x{parameter:x16}",
+                8 => (int)value < PartyTemplates.Count ? $"\"pt_{PartyTemplates[(int)value]}\"" : $"0x{parameter:x16}",
+                9 => (int)value < Parties.Count ? $"\"p_{Parties[(int)value]}\"" : $"0x{parameter:x16}",
+                10 => (int)value < Scenes.Count ? $"\"scn_{Scenes[(int)value]}\"" : $"0x{parameter:x16}",
+                11 => (int)value < MissionTemplates.Count ? $"\"mt_{MissionTemplates[(int)value]}\"" : $"0x{parameter:x16}",
+                12 => (int)value < Menus.Count ? $"\"mnu_{Menus[(int)value]}\"" : $"0x{parameter:x16}",
+                13 => (int)value < Procedures.Count ? $"\"script_{Procedures[(int)value]}\"" : $"0x{parameter:x16}",
+                14 => (int)value < ParticleSystems.Count ? $"\"psys_{ParticleSystems[(int)value]}\"" : $"0x{parameter:x16}",
+                15 => (int)value < SceneProps.Count ? $"\"spr_{SceneProps[(int)value]}\"" : $"0x{parameter:x16}",
+                16 => (int)value < Sounds.Count ? $"\"snd_{Sounds[(int)value]}\"" : $"0x{parameter:x16}",
+                17 => $":var{(int)value}",
+                18 => (int)value < MapIcons.Count ? $"\"icon_{MapIcons[(int)value]}\"" : $"0x{parameter:x16}",
+                19 => (int)value < Skills.Count ? $"\"skl_{Skills[(int)value]}\"" : $"0x{parameter:x16}",
+                20 => (int)value < Meshes.Count ? $"\"mesh_{Meshes[(int)value]}\"" : $"0x{parameter:x16}",
+                21 => (int)value < Presentations.Count ? $"\"prsnt_{Presentations[(int)value]}\"" : $"0x{parameter:x16}",
+                22 => (int)value < QuickStrings.Count ? $"\"@{QuickStrings[(int)value]}\"" : $"0x{parameter:x16}",
+                23 => (int)value < Music.Count ? $"\"track_{Music[(int)value]}\"" : $"0x{parameter:x16}",
+                24 => (int)value < Tableaus.Count ? $"\"tableau_{Tableaus[(int)value]}\"" : $"0x{parameter:x16}",
+                25 => (int)value < Animations.Count ? $"\"anim_{Animations[(int)value]}\"" : $"0x{parameter:x16}",
+                _ => parameter.ToString(CultureInfo.InvariantCulture)
             };
         }
 
-        public static string GetTriggerParam(double dblParam) => ((int)dblParam) switch
+        public static string GetTriggerParameter(double parameter)
         {
-            -2 => "ti_on_game_start",
-            -5 => "ti_simulate_battle",
-            -6 => "ti_on_party_encounter",
-            -8 => "ti_question_answered",
-            -15 => "ti_server_player_joined",
-            -16 => "ti_on_multiplayer_mission_end",
-            -19 => "ti_before_mission_start",
-            -20 => "ti_after_mission_start",
-            -21 => "ti_tab_pressed",
-            -22 => "ti_inventory_key_pressed",
-            -23 => "ti_escape_pressed",
-            -24 => "ti_battle_window_opened",
-            -25 => "ti_on_agent_spawn",
-            -26 => "ti_on_agent_killed_or_wounded",
-            -27 => "ti_on_agent_knocked_down",
-            -28 => "ti_on_agent_hit",
-            -29 => "ti_on_player_exit",
-            -30 => "ti_on_leave_area",
-            -40 => "ti_on_scene_prop_init",
-            -42 => "ti_on_scene_prop_hit",
-            -43 => "ti_on_scene_prop_destroy",
-            -44 => "ti_on_scene_prop_use",
-            -45 => "ti_on_scene_prop_is_animating",
-            -46 => "ti_on_scene_prop_animation_finished",
-            -47 => "ti_on_scene_prop_start_use",
-            -48 => "ti_on_scene_prop_cancel_use",
-            -50 => "ti_on_init_item",
-            -51 => "ti_on_weapon_attack",
-            -52 => "ti_on_missile_hit",
-            -53 => "ti_on_item_picked_up",
-            -54 => "ti_on_item_dropped",
-            -55 => "ti_on_agent_mount",
-            -56 => "ti_on_agent_dismount",
-            -57 => "ti_on_item_wielded",
-            -58 => "ti_on_item_unwielded",
-            -60 => "ti_on_presentation_load",
-            -61 => "ti_on_presentation_run",
-            -62 => "ti_on_presentation_event_state_change",
-            -63 => "ti_on_presentation_mouse_enter_leave",
-            -64 => "ti_on_presentation_mouse_press",
-            -70 => "ti_on_init_map_icon",
-            -71 => "ti_on_order_issued",
-            -75 => "ti_on_switch_to_map",
-            -76 => "ti_scene_prop_deformation_finished",
-            -80 => "ti_on_shield_hit",
-            -100 => "ti_on_scene_prop_stepped_on",
-            -101 => "ti_on_init_missile",
-            -102 => "ti_on_agent_turn",
-            -103 => SelectedMode == Mode.WarbandScriptEnhancer450 ? "ti_on_agent_blocked" : "ti_on_shield_hit",
-            -104 => "ti_on_missile_dive",
-            -105 => "ti_on_agent_start_reloading",
-            -106 => "ti_on_agent_end_reloading",
-            -107 => "ti_on_shield_penetrated",
-            100000000 => "ti_once",
-            _ => dblParam.ToString(CultureInfo.GetCultureInfo("en-US"))
-        };
-
-        public static string GetIndentations(int indentation) => new string(' ', Math.Max(indentation, 0) << 1);
-
-        public static void PrintStatement(ref Text fInput, ref FileWriter fOutput, int iRecords, string strDefaultIndentation)
-        {
-            ArgumentNullException.ThrowIfNull(fInput);
-            ArgumentNullException.ThrowIfNull(fOutput);
-
-            var indentations = 0;
-            for (int r = 0; r < iRecords; r++)
+            return (int)parameter switch
             {
-                var iOpCode = fInput.GetInt64();
+                -2 => "ti_on_game_start",
+                -5 => "ti_simulate_battle",
+                -6 => "ti_on_party_encounter",
+                -8 => "ti_question_answered",
+                -15 => "ti_server_player_joined",
+                -16 => "ti_on_multiplayer_mission_end",
+                -19 => "ti_before_mission_start",
+                -20 => "ti_after_mission_start",
+                -21 => "ti_tab_pressed",
+                -22 => "ti_inventory_key_pressed",
+                -23 => "ti_escape_pressed",
+                -24 => "ti_battle_window_opened",
+                -25 => "ti_on_agent_spawn",
+                -26 => "ti_on_agent_killed_or_wounded",
+                -27 => "ti_on_agent_knocked_down",
+                -28 => "ti_on_agent_hit",
+                -29 => "ti_on_player_exit",
+                -30 => "ti_on_leave_area",
+                -40 => "ti_on_scene_prop_init",
+                -42 => "ti_on_scene_prop_hit",
+                -43 => "ti_on_scene_prop_destroy",
+                -44 => "ti_on_scene_prop_use",
+                -45 => "ti_on_scene_prop_is_animating",
+                -46 => "ti_on_scene_prop_animation_finished",
+                -47 => "ti_on_scene_prop_start_use",
+                -48 => "ti_on_scene_prop_cancel_use",
+                -50 => "ti_on_init_item",
+                -51 => "ti_on_weapon_attack",
+                -52 => "ti_on_missile_hit",
+                -53 => "ti_on_item_picked_up",
+                -54 => "ti_on_item_dropped",
+                -55 => "ti_on_agent_mount",
+                -56 => "ti_on_agent_dismount",
+                -57 => "ti_on_item_wielded",
+                -58 => "ti_on_item_unwielded",
+                -60 => "ti_on_presentation_load",
+                -61 => "ti_on_presentation_run",
+                -62 => "ti_on_presentation_event_state_change",
+                -63 => "ti_on_presentation_mouse_enter_leave",
+                -64 => "ti_on_presentation_mouse_press",
+                -70 => "ti_on_init_map_icon",
+                -71 => "ti_on_order_issued",
+                -75 => "ti_on_switch_to_map",
+                -76 => "ti_scene_prop_deformation_finished",
+                -80 => "ti_on_shield_hit",
+                -100 => "ti_on_scene_prop_stepped_on",
+                -101 => "ti_on_init_missile",
+                -102 => "ti_on_agent_turn",
+                -103 => SelectedMode == GameMode.WarbandScriptEnhancer450 ? "ti_on_agent_blocked" : "ti_on_shield_hit",
+                -104 => "ti_on_missile_dive",
+                -105 => "ti_on_agent_start_reloading",
+                -106 => "ti_on_agent_end_reloading",
+                -107 => "ti_on_shield_penetrated",
+                100000000 => "ti_once",
+                _ => parameter.ToString(CultureInfo.InvariantCulture)
+            };
+        }
 
-                var strPrefixNeg = "";
-                if ((iOpCode & 0x80000000) != 0)
+        public static string GetIndentation(int indentationLevel) => new string(' ', Math.Max(indentationLevel, 0) * 2);
+
+        public static void PrintStatement(ref Text input, ref FileWriter output, int recordCount, string defaultIndentation)
+        {
+            ArgumentNullException.ThrowIfNull(input);
+            ArgumentNullException.ThrowIfNull(output);
+
+            var indentationLevel = 0;
+            for (var i = 0; i < recordCount; i++)
+            {
+                var opcode = input.GetInt64();
+
+                var isNegated = (opcode & 0x80000000) != 0;
+                if (isNegated) opcode ^= 0x80000000;
+
+                var isThisOrNext = (opcode & 0x40000000) != 0;
+                if (isThisOrNext) opcode ^= 0x40000000;
+
+                var op = FindOperator((int)(opcode & 0xFFFF));
+
+                if (opcode is 4 or 6 or 7 or 11 or 12 or 15 or 16 or 17 or 18)
+                    indentationLevel++;
+                else if (opcode == 3)
+                    indentationLevel--;
+
+                var indentation = opcode is 4 or 5 or 6 or 7 or 11 or 12 or 15 or 16 or 17 or 18
+                    ? GetIndentation(indentationLevel - 1)
+                    : GetIndentation(indentationLevel);
+
+                string? opcodeString = null;
+                if (isNegated && opcode >= 30 && opcode <= 32)
                 {
-                    strPrefixNeg = "neg|";
-                    iOpCode ^= 0x80000000;
-                }
-                var strPrefixThisOrNext = "";
-                if ((iOpCode & 0x40000000) != 0)
-                {
-                    strPrefixThisOrNext = "this_or_next|";
-                    iOpCode ^= 0x40000000;
-                }
-
-                var op = FindOperator((int)(iOpCode & 0xFFFF));
-
-                if (iOpCode is 4 or 6 or 7 or 11 or 12 or 15 or 16 or 17 or 18)
-                    indentations++;
-                else if (iOpCode == 3)
-                    indentations--;
-
-                var strIdentations = iOpCode is 4 or 5 or 6 or 7 or 11 or 12 or 15 or 16 or 17 or 18
-                    ? GetIndentations(indentations - 1)
-                    : GetIndentations(indentations);
-
-                string? strOpCode = null;
-                if (strPrefixNeg.Length > 0 && iOpCode >= 30 && iOpCode <= 32)
-                {
-                    strOpCode = iOpCode switch
+                    opcodeString = opcode switch
                     {
                         30 => "lt",
                         31 => "neq",
                         32 => "le",
                         _ => null
                     };
-                    fOutput.Write("{0}{1}({2}{3}", strIdentations, strDefaultIndentation, strPrefixThisOrNext, strOpCode);
+                    output.Write($"{indentation}{defaultIndentation}({(isThisOrNext ? "this_or_next|" : "")}{opcodeString}");
                 }
                 else
                 {
-                    strOpCode = op.Value;
-                    fOutput.Write("{0}{1}({2}{3}{4}", strIdentations, strDefaultIndentation, strPrefixNeg, strPrefixThisOrNext, strOpCode);
+                    opcodeString = op.Value;
+                    output.Write($"{indentation}{defaultIndentation}({(isNegated ? "neg|" : "")}{(isThisOrNext ? "this_or_next|" : "")}{opcodeString}");
                 }
 
-                int iParams = fInput.GetInt();
-                for (int p = 0; p < iParams; p++)
+                var parameterCount = input.GetInt();
+                for (var p = 0; p < parameterCount; p++)
                 {
-                    var strParam = fInput.GetWord();
-                    fOutput.Write(", {0}", op.GetParameter(p, strParam ?? string.Empty));
+                    var parameter = input.GetWord() ?? string.Empty;
+                    output.Write($", {op.GetParameter(p, parameter)}");
                 }
-                fOutput.WriteLine("),");
+                output.WriteLine("),");
             }
         }
 
-        public static string GetKey(ulong lKeyCode) => lKeyCode switch
+        public static string GetKeyCode(ulong keyCode) => keyCode switch
         {
             0x02 => "key_1",
             0x03 => "key_2",
@@ -425,10 +425,10 @@ from ID_troops import *";
             0xfd => "key_xbox_rtrigger",
             0xfe => "key_xbox_rstick",
             0xff => "key_xbox_lstick",
-            _ => $"0x{lKeyCode:x}"
+            _ => $"0x{keyCode:x}"
         };
 
-        public static string GetGameKey(ulong lKeyCode) => lKeyCode switch
+        public static string GetGameKey(ulong keyCode) => keyCode switch
         {
             0 => "gk_move_forward",
             1 => "gk_move_backward",
@@ -482,87 +482,103 @@ from ID_troops import *";
             49 => "gk_crouch",
             50 => "gk_order_7",
             51 => "gk_order_8",
-            _ => $"0x{lKeyCode:x}",
+            _ => $"0x{keyCode:x}"
         };
 
-        public static bool IsStringRegister(ulong lParam)
+        public static bool IsStringRegister(ulong parameter)
         {
-            ulong lTag = (lParam & 0xFF00000000000000) >> 56;
-            return lTag == 0;
+            const ulong tagMask = 0xFF00000000000000;
+            var tag = (parameter & tagMask) >> 56;
+            return tag == 0;
         }
 
-        public static bool IsKey(ulong lKeyCode)
+        public static bool IsKey(ulong keyCode)
         {
-            ulong lTag = (lKeyCode & 0xFF00000000000000) >> 56;
-            return lTag == 0;
+            const ulong tagMask = 0xFF00000000000000;
+            var tag = (keyCode & tagMask) >> 56;
+            return tag == 0;
         }
 
-        public static bool IsTextFlags(ulong lFlags)
+        public static bool IsTextFlag(ulong flags)
         {
-            ulong lTag = (lFlags & 0xFF00000000000000) >> 56;
-            return lTag == 0;
+            const ulong tagMask = 0xFF00000000000000;
+            var tag = (flags & tagMask) >> 56;
+            return tag == 0;
         }
 
-        public static bool IsPosition(ulong lFlags)
+        public static bool IsPosition(ulong flags)
         {
-            ulong lTag = (lFlags & 0xFF00000000000000) >> 56;
-            return lTag == 0;
+            const ulong tagMask = 0xFF00000000000000;
+            var tag = (flags & tagMask) >> 56;
+            return tag == 0;
         }
 
-        public static bool IsFloatRegister(ulong lFlags)
+        public static bool IsFloatRegister(ulong flags)
         {
-            ulong lTag = (lFlags & 0xFF00000000000000) >> 56;
-            return lTag == 0;
+            const ulong tagMask = 0xFF00000000000000;
+            var tag = (flags & tagMask) >> 56;
+            return tag == 0;
         }
 
-        public static bool IsFaceKey(ulong lFlags)
+        public static bool IsFaceKey(ulong flags)
         {
-            ulong lTag = (lFlags & 0xFF00000000000000) >> 56;
-            return lTag == 0;
+            const ulong tagMask = 0xFF00000000000000;
+            var tag = (flags & tagMask) >> 56;
+            return tag == 0;
         }
 
-        public static bool NotParam(ulong lFlags)
+        public static bool IsNotParameter(ulong flags)
         {
-            var lTag = (lFlags & 0xFF00000000000000) >> 56;
-            return lTag == 0;
+            const ulong tagMask = 0xFF00000000000000;
+            var tag = (flags & tagMask) >> 56;
+            return tag == 0;
         }
 
-        public static string GetFaceKey(ulong lFaceKeyCode) => lFaceKeyCode.ToString(CultureInfo.GetCultureInfo("en-US"));
+        public static string GetFaceKey(ulong faceKeyCode) => faceKeyCode.ToString(CultureInfo.InvariantCulture);
 
-        public static string DecompileTextFlags(uint dwFlag)
+        public static string DecompileTextFlags(uint flags)
         {
-            var sbFlag = new StringBuilder(32);
+            var flagBuilder = new StringBuilder(32);
 
-            string[] strFlags = { "tf_left_align", "tf_right_align", "tf_center_justify", "tf_double_space", "tf_vertical_align_center", "tf_scrollable",
-            "tf_single_line", "tf_with_outline", "tf_scrollable_style_2" };
-            uint[] dwFlags = { 0x00000004, 0x00000008, 0x00000010, 0x00000800, 0x00001000, 0x00002000, 0x00008000, 0x00010000, 0x00020000 };
-            for (int i = 0; i < dwFlags.Length; i++)
+            string[] flagNames =
             {
-                if ((dwFlag & dwFlags[i]) == 0) continue;
-                sbFlag.Append(strFlags[i]);
-                sbFlag.Append('|');
-                dwFlag ^= dwFlags[i];
+                "tf_left_align", "tf_right_align", "tf_center_justify", "tf_double_space",
+                "tf_vertical_align_center", "tf_scrollable", "tf_single_line", "tf_with_outline",
+                "tf_scrollable_style_2"
+            };
+            uint[] flagValues =
+            {
+                0x00000004, 0x00000008, 0x00000010, 0x00000800, 0x00001000,
+                0x00002000, 0x00008000, 0x00010000, 0x00020000
+            };
+
+            for (var i = 0; i < flagValues.Length; i++)
+            {
+                if ((flags & flagValues[i]) == 0) continue;
+                flagBuilder.Append(flagNames[i]);
+                flagBuilder.Append('|');
+                flags ^= flagValues[i];
             }
 
-            if (sbFlag.Length == 0)
-                sbFlag.Append('0');
+            if (flagBuilder.Length == 0)
+                flagBuilder.Append('0');
             else
-                sbFlag.Length--;
+                flagBuilder.Length--;
 
-            return sbFlag.ToString();
+            return flagBuilder.ToString();
         }
 
-        public static string GetAgentClass(ulong lClass) => lClass switch
+        public static string GetAgentClass(ulong agentClass) => agentClass switch
         {
             0 => "grc_infantry",
             1 => "grc_archers",
             2 => "grc_cavalry",
             3 => "grc_infantry",
             9 => "grc_everyone",
-            _ => lClass.ToString(CultureInfo.GetCultureInfo("en-US"))
+            _ => agentClass.ToString(CultureInfo.InvariantCulture)
         };
 
-        public static string GetTeamOrder(ulong lOrder) => lOrder switch
+        public static string GetTeamOrder(ulong order) => order switch
         {
             0 => "mordr_hold",
             1 => "mordr_follow",
@@ -590,28 +606,32 @@ from ID_troops import *";
             23 => "mordr_form_3_row",
             24 => "mordr_form_4_row",
             25 => "mordr_form_5_row",
-            _ => lOrder.ToString(CultureInfo.GetCultureInfo("en-US")),
+            _ => order.ToString(CultureInfo.InvariantCulture)
         };
 
-        public static string GetPartyBehavior(ulong lBehavior)
+        public static string GetPartyBehavior(ulong behavior)
         {
-            var iAIbehaviour = (int)lBehavior;
-            string[] strAIbehaviours = { "ai_bhvr_hold", "ai_bhvr_travel_to_party", "ai_bhvr_patrol_location", "ai_bhvr_patrol_party",
-                "ai_bhvr_attack_party", "ai_bhvr_avoid_party", "ai_bhvr_travel_to_point", "ai_bhvr_negotiate_party", "ai_bhvr_in_town",
-                "ai_bhvr_travel_to_ship", "ai_bhvr_escort_party", "ai_bhvr_driven_by_party" };
-            return iAIbehaviour <= 11 ? strAIbehaviours[iAIbehaviour] : iAIbehaviour.ToString(CultureInfo.GetCultureInfo("en-US"));
+            var behaviorIndex = (int)behavior;
+            string[] behaviorNames =
+            {
+                "ai_bhvr_hold", "ai_bhvr_travel_to_party", "ai_bhvr_patrol_location",
+                "ai_bhvr_patrol_party", "ai_bhvr_attack_party", "ai_bhvr_avoid_party",
+                "ai_bhvr_travel_to_point", "ai_bhvr_negotiate_party", "ai_bhvr_in_town",
+                "ai_bhvr_travel_to_ship", "ai_bhvr_escort_party", "ai_bhvr_driven_by_party"
+            };
+            return behaviorIndex <= 11 ? behaviorNames[behaviorIndex] : behaviorIndex.ToString(CultureInfo.InvariantCulture);
         }
 
-        public static string GetCharacterAttribute(ulong lAttribute) => lAttribute switch
+        public static string GetCharacterAttribute(ulong attribute) => attribute switch
         {
             0 => "ca_strength",
             1 => "ca_agility",
             2 => "ca_intelligence",
             3 => "ca_charisma",
-            _ => lAttribute.ToString(CultureInfo.GetCultureInfo("en-US")),
+            _ => attribute.ToString(CultureInfo.InvariantCulture)
         };
 
-        public static string GetWeaponProficiency(ulong lProficiency) => lProficiency switch
+        public static string GetWeaponProficiency(ulong proficiency) => proficiency switch
         {
             0 => "wpt_one_handed_weapon",
             1 => "wpt_two_handed_weapon",
@@ -620,10 +640,10 @@ from ID_troops import *";
             4 => "wpt_crossbow",
             5 => "wpt_throwing",
             6 => "wpt_firearm",
-            _ => lProficiency.ToString(CultureInfo.GetCultureInfo("en-US")),
+            _ => proficiency.ToString(CultureInfo.InvariantCulture)
         };
 
-        public static string GetInventorySlot(ulong lSlot) => lSlot switch
+        public static string GetInventorySlot(ulong slot) => slot switch
         {
             0 => "ek_item_0",
             1 => "ek_item_1",
@@ -635,10 +655,10 @@ from ID_troops import *";
             7 => "ek_gloves",
             8 => "ek_horse",
             9 => "ek_food",
-            _ => lSlot.ToString(CultureInfo.GetCultureInfo("en-US")),
+            _ => slot.ToString(CultureInfo.InvariantCulture)
         };
 
-        public static string GetTooltip(ulong t) => t switch
+        public static string GetTooltip(ulong tooltip) => tooltip switch
         {
             1 => "tooltip_agent",
             2 => "tooltip_horse",
@@ -649,35 +669,44 @@ from ID_troops import *";
             8 => "tooltip_leave_area",
             9 => "tooltip_prop",
             10 => "tooltip_destructible_prop",
-            _ => t.ToString(CultureInfo.GetCultureInfo("en-US")),
+            _ => tooltip.ToString(CultureInfo.InvariantCulture)
         };
 
         public static string GetColor(ulong color)
         {
-            if (color <= 0xFFFFFFFF && color > 0x00FFFFFF) return "0x" + color.ToString("X8", CultureInfo.GetCultureInfo("en-US"));
-            if (color <= 0x00FFFFFF) return "0x" + color.ToString("X6", CultureInfo.GetCultureInfo("en-US"));
-            return "0x" + color.ToString("X", CultureInfo.GetCultureInfo("en-US"));
+            if (color <= 0xFFFFFFFF && color > 0x00FFFFFF)
+                return $"0x{color:X8}";
+            if (color <= 0x00FFFFFF)
+                return $"0x{color:X6}";
+            return $"0x{color:X}";
         }
 
-        public static string GetAlpha(ulong alpha) => "0x" + (alpha <= 0xFF ? alpha.ToString("X2", CultureInfo.GetCultureInfo("en-US")) : alpha.ToString("X", CultureInfo.GetCultureInfo("en-US")));
+        public static string GetAlpha(ulong alpha) => $"0x{(alpha <= 0xFF ? alpha.ToString("X2") : alpha.ToString("X"))}";
 
-        public static string DecompileSortMode(ulong sm) => (sm & 3) switch
+        public static string DecompileSortMode(ulong sortMode)
         {
-            0x0 => "0",
-            0x1 => "sort_f_desc",
-            0x10 => "sort_f_ci",
-            0x11 => "sort_f_ci | sort_f_desc",
-            _ => sm.ToString(CultureInfo.GetCultureInfo("en-US")),
-        };
+            return (sortMode & 3) switch
+            {
+                0x0 => "0",
+                0x1 => "sort_f_desc",
+                0x10 => "sort_f_ci",
+                0x11 => "sort_f_ci | sort_f_desc",
+                _ => sortMode.ToString(CultureInfo.InvariantCulture)
+            };
+        }
 
-        public static bool NeedId { get; set; } = true;
-        public static void GenerateId(string fileOut, IEnumerable<string> content, string prefix = "")
+        public static bool GenerateIdEnabled { get; set; } = true;
+
+        public static void GenerateIdFile(string fileName, IEnumerable<string> content, string prefix = "")
         {
-            if (!NeedId || string.IsNullOrEmpty(prefix) || content == null) return;
-            using var f = new StreamWriter(Path.Combine(OutputPath, fileOut));
-            if (prefix.Length > 0 && prefix[^1] != '_') prefix += '_';
+            if (!GenerateIdEnabled || string.IsNullOrEmpty(prefix) || content == null) return;
+
+            var outputPath = Path.Combine(OutputPath, fileName);
             var enumerable = content.ToArray();
-            for (int i = 0; i < enumerable.Length; i++) f.WriteLine("{0}{1} = {2}", prefix, enumerable[i], i);
+            using var writer = new StreamWriter(outputPath);
+            if (prefix.Length > 0 && prefix[^1] != '_') prefix += '_';
+            for (var i = 0; i < enumerable.Length; i++)
+                writer.WriteLine($"{prefix}{enumerable[i]} = {i}");
         }
     }
 }
