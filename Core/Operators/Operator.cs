@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 
 namespace Decomp.Core.Operators
 {
@@ -74,20 +73,20 @@ namespace Decomp.Core.Operators
 #pragma warning disable CA1716 // Identifiers should not match keywords
     public class Operator
     {
-        public string Name { get; set; } = string.Empty;
-        public int Code { get; set; }
-        public IReadOnlyDictionary<int, Parameter> Parameters { get; set; } = new Dictionary<int, Parameter>();
+        public string Name { get; }
+        public int Code { get; }
+        public IReadOnlyDictionary<int, Parameter> Parameters { get; }
 
         public Operator(string name, int code)
         {
-            Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
             Code = code;
             Parameters = new Dictionary<int, Parameter>();
         }
 
         public Operator(string name, int code, params Parameter[] parameters)
         {
-            Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
             Code = code;
             var paramDict = new Dictionary<int, Parameter>();
             for (int i = 0; i < parameters.Length; i++)

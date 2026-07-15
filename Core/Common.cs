@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Decomp.Core.Operators;
+
 namespace Decomp.Core
 {
     public enum GameMode
@@ -74,6 +75,7 @@ from ID_troops import *";
         public static IReadOnlyList<string> Factions { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Quests { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> PartyTemplates { get; set; } = Array.Empty<string>();
+        public static IReadOnlyList<string> PTemps { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Parties { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Menus { get; set; } = Array.Empty<string>();
         public static IReadOnlyList<string> Sounds { get; set; } = Array.Empty<string>();
@@ -277,7 +279,7 @@ from ID_troops import *";
                 }
                 else
                 {
-                    opcodeString = op.Value;
+                    opcodeString = op.Name;
                     output.Write($"{indentation}{defaultIndentation}({(isNegated ? "neg|" : "")}{(isThisOrNext ? "this_or_next|" : "")}{opcodeString}");
                 }
 
