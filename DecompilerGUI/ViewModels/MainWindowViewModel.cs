@@ -122,9 +122,22 @@ namespace DecompilerGUI.ViewModels
             _localization = new LocalizationService();
             _currentLanguage = AvailableLanguages[0];
 
-            BrowseInputCommand = ReactiveCommand.CreateFromTask(BrowseInputAsync, outputScheduler: RxApp.MainThreadScheduler);
-            BrowseOutputCommand = ReactiveCommand.CreateFromTask(BrowseOutputAsync, outputScheduler: RxApp.MainThreadScheduler);
-            DecompileCommand = ReactiveCommand.CreateFromTask(DecompileAsync, outputScheduler: RxApp.MainThreadScheduler);
+            var canExecuteOnUI = Observable.Return(true).ObserveOn(RxApp.MainThreadScheduler);
+
+            BrowseInputCommand = ReactiveCommand.CreateFromTask(
+                BrowseInputAsync, 
+                canExecute: canExecuteOnUI,
+                outputScheduler: RxApp.MainThreadScheduler);
+
+            BrowseOutputCommand = ReactiveCommand.CreateFromTask(
+                BrowseOutputAsync, 
+                canExecute: canExecuteOnUI,
+                outputScheduler: RxApp.MainThreadScheduler);
+
+            DecompileCommand = ReactiveCommand.CreateFromTask(
+                DecompileAsync, 
+                canExecute: canExecuteOnUI,
+                outputScheduler: RxApp.MainThreadScheduler);
 
             Decompiler.LogMessage += OnLogMessageReceived;
             UpdateStatusMessage();
