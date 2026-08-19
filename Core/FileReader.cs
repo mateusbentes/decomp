@@ -1,62 +1,82 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
-namespace Decomp.Core
+namespace Decomp.Core;
+
+/// <summary>
+/// Compatibility wrapper for synchronous module readers plus asynchronous bulk helpers.
+/// </summary>
+public sealed class FileReader : IDisposable
 {
-    public class FileReader : IDisposable
+    private static readonly UTF8Encoding Utf8 = new(false, true);
+    private readonly StreamReader reader;
+    private bool disposed;
+
+    public FileReader(string fileName)
     {
-        private readonly StreamReader _reader;
-        private bool _disposed;
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        var stream = new FileStream(
+            fileName,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            64 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        reader = new StreamReader(
+            stream,
+            Utf8,
+            detectEncodingFromByteOrderMarks: true,
+            bufferSize: 64 * 1024);
+    }
 
-        public FileReader(string fileName)
-        {
-            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
-            _reader = new StreamReader(fileName, Encoding.UTF8);
-        }
+    public int Read()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        return reader.Read();
+    }
 
-        public int Read()
-        {
-            return _reader.Read();
-        }
+    public int Peek()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        return reader.Peek();
+    }
 
-        public int Peek()
-        {
-            return _reader.Peek();
-        }
+    public string? ReadLine()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        return reader.ReadLine();
+    }
 
-        public string? ReadLine()
-        {
-            return _reader.ReadLine();
-        }
+    public void Close() => Dispose();
 
-        public void Close()
-        {
-            _reader.Close();
-        }
+    public static string[] ReadAllLines(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        return File.ReadAllLines(path, Utf8);
+    }
 
-        public static string[] ReadAllLines(string path)
-        {
-            return File.ReadAllLines(path, Encoding.UTF8);
-        }
+    public static async Task<string[]> ReadAllLinesAsync(
+        string path,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        return await File.ReadAllLinesAsync(path, Utf8, cancellationToken).ConfigureAwait(false);
+    }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    _reader.Dispose();
-                }
-                _disposed = true;
-            }
-        }
+    public static async Task<string> ReadAllTextAsync(
+        string path,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        return await File.ReadAllTextAsync(path, Utf8, cancellationToken).ConfigureAwait(false);
+    }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+    public void Dispose()
+    {
+        if (disposed)
+            return;
+
+        reader.Dispose();
+        disposed = true;
+        GC.SuppressFinalize(this);
     }
 }

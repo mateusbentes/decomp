@@ -1,19 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <AssemblyName>Decomp</AssemblyName>
+    <RootNamespace>Decomp.Core</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);CS8632</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="DecompilerGUI\**\*.cs" />
-    <EmbeddedResource Remove="DecompilerGUI\**\*" />
-    <None Include="DecompilerGUI\**\*" />
+    <Compile Include="Core/**/*.cs" />
+    <None Include="DecompilerGUI/**/*" />
   </ItemGroup>
-
 </Project>

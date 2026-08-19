@@ -240,6 +240,11 @@ from ID_troops import *";
 
         public static void PrintStatement(ref Text input, ref FileWriter output, int recordCount, string defaultIndentation)
         {
+            PrintStatement(input, output, recordCount, defaultIndentation);
+        }
+
+        public static void PrintStatement(Text input, FileWriter output, int recordCount, string defaultIndentation)
+        {
             ArgumentNullException.ThrowIfNull(input);
             ArgumentNullException.ThrowIfNull(output);
 
@@ -707,10 +712,11 @@ from ID_troops import *";
 
             var outputPath = Path.Combine(OutputPath, fileName);
             var enumerable = content.ToArray();
-            using var writer = new StreamWriter(outputPath);
             if (prefix.Length > 0 && prefix[^1] != '_') prefix += '_';
+            var builder = new StringBuilder();
             for (var i = 0; i < enumerable.Length; i++)
-                writer.WriteLine($"{prefix}{enumerable[i]} = {i}");
+                builder.Append(prefix).Append(enumerable[i]).Append(" = ").Append(i).Append('\n');
+            FileWriter.WriteAllText(outputPath, builder.ToString());
         }
 
         public static string GetCommonIdentifier(string prefix, IReadOnlyList<string> array, int index, bool useQuotes = false)

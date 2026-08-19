@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -14,337 +8,306 @@ using Decomp.Core;
 using DecompilerGUI.Services;
 using ReactiveUI;
 
-namespace DecompilerGUI.ViewModels
+namespace DecompilerGUI.ViewModels;
+
+public sealed class MainWindowViewModel : ReactiveObject, IDisposable
 {
-    public class MainWindowViewModel : ReactiveObject
+    private readonly LocalizationService localization;
+    private CancellationTokenSource? decompilationCancellation;
+    private string inputPath = string.Empty;
+    private string outputPath = string.Empty;
+    private string selectedVersion = "VanillaWarband";
+    private double progress;
+    private bool isIndeterminateProgress;
+    private string logOutput = string.Empty;
+    private string statusMessage = string.Empty;
+    private CultureInfo currentLanguage;
+    private bool disposed;
+
+    public MainWindowViewModel()
     {
-        private readonly LocalizationService _localization;
-        private string _inputPath = string.Empty;
-        private string _outputPath = string.Empty;
-        private string _selectedVersion = "VanillaWarband";
-        private double _progress;
-        private bool _isIndeterminateProgress;
-        private string _logOutput = string.Empty;
-        private string _statusMessage = string.Empty;
-        private CultureInfo _currentLanguage;
+        localization = new LocalizationService();
+        currentLanguage = AvailableLanguages[0];
 
-        public string InputPath
+        var canExecuteOnUi = Observable.Return(true).ObserveOn(RxApp.MainThreadScheduler);
+        BrowseInputCommand = ReactiveCommand.CreateFromTask(
+            BrowseInputAsync,
+            canExecute: canExecuteOnUi,
+            outputScheduler: RxApp.MainThreadScheduler);
+        BrowseOutputCommand = ReactiveCommand.CreateFromTask(
+            BrowseOutputAsync,
+            canExecute: canExecuteOnUi,
+            outputScheduler: RxApp.MainThreadScheduler);
+        DecompileCommand = ReactiveCommand.CreateFromTask(
+            DecompileAsync,
+            canExecute: canExecuteOnUi,
+            outputScheduler: RxApp.MainThreadScheduler);
+
+        Decompiler.LogMessage += OnLogMessageReceived;
+        UpdateStatusMessage();
+    }
+
+    public string InputPath
+    {
+        get => inputPath;
+        set => this.RaiseAndSetIfChanged(ref inputPath, NormalizePath(value));
+    }
+
+    public string OutputPath
+    {
+        get => outputPath;
+        set => this.RaiseAndSetIfChanged(ref outputPath, NormalizePath(value));
+    }
+
+    public string SelectedVersion
+    {
+        get => selectedVersion;
+        set => this.RaiseAndSetIfChanged(ref selectedVersion, value);
+    }
+
+    public double Progress
+    {
+        get => progress;
+        private set => this.RaiseAndSetIfChanged(ref progress, value);
+    }
+
+    public bool IsIndeterminateProgress
+    {
+        get => isIndeterminateProgress;
+        private set => this.RaiseAndSetIfChanged(ref isIndeterminateProgress, value);
+    }
+
+    public string LogOutput
+    {
+        get => logOutput;
+        private set => this.RaiseAndSetIfChanged(ref logOutput, value);
+    }
+
+    public string StatusMessage
+    {
+        get => statusMessage;
+        private set => this.RaiseAndSetIfChanged(ref statusMessage, value);
+    }
+
+    public CultureInfo CurrentLanguage
+    {
+        get => currentLanguage;
+        set
         {
-            get => _inputPath;
-            set => this.RaiseAndSetIfChanged(ref _inputPath, NormalizePath(value));
+            if (Equals(currentLanguage, value))
+                return;
+
+            this.RaiseAndSetIfChanged(ref currentLanguage, value);
+            RunOnUi(() => ChangeLanguage(value?.Name ?? "en-US"));
         }
+    }
 
-        public string OutputPath
+    public IReadOnlyList<string> AvailableVersions { get; } =
+    [
+        "VanillaClassic",
+        "VanillaWarband",
+        "Warband1171",
+        "VanillaWFS",
+        "WSE320",
+        "WSE450",
+        "Caribbean",
+    ];
+
+    public IReadOnlyList<CultureInfo> AvailableLanguages { get; } =
+    [
+        new CultureInfo("en-US"),
+        new CultureInfo("ru-RU"),
+    ];
+
+    public string AppTitle => localization["AppTitle"];
+    public string InputSectionTitle => localization["InputSectionTitle"];
+    public string InputPlaceholder => localization["InputPlaceholder"];
+    public string BrowseButton => localization["BrowseButton"];
+    public string OutputSectionTitle => localization["OutputSectionTitle"];
+    public string OutputPlaceholder => localization["OutputPlaceholder"];
+    public string EngineVersionTitle => localization["EngineVersionTitle"];
+    public string DecompileButton => localization["DecompileButton"];
+    public string StatusReady => localization["StatusReady"];
+    public string SelectedInput => localization["SelectedInput"];
+    public string OutputFolder => localization["OutputFolder"];
+    public string ErrorNoInput => localization["ErrorNoInput"];
+    public string ErrorNoOutput => localization["ErrorNoOutput"];
+    public string ErrorCreateOutput => localization["ErrorCreateOutput"];
+    public string StatusDecompiling => localization["StatusDecompiling"];
+    public string StatusCompleted => localization["StatusCompleted"];
+    public string StatusError => localization["StatusError"];
+    public string FailedToProcess => localization["FailedToProcess"];
+
+    public ReactiveCommand<Unit, Unit> BrowseInputCommand { get; }
+    public ReactiveCommand<Unit, Unit> BrowseOutputCommand { get; }
+    public ReactiveCommand<Unit, Unit> DecompileCommand { get; }
+
+    private void ChangeLanguage(string languageCode)
+    {
+        localization.SetLanguage(languageCode);
+        UpdateStatusMessage();
+        this.RaisePropertyChanged(string.Empty);
+    }
+
+    private void UpdateStatusMessage() => StatusMessage = StatusReady;
+
+    private void OnLogMessageReceived(string message)
+    {
+        RunOnUi(() =>
         {
-            get => _outputPath;
-            set => this.RaiseAndSetIfChanged(ref _outputPath, NormalizePath(value));
-        }
+            LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
+        });
+    }
 
-        public string SelectedVersion
-        {
-            get => _selectedVersion;
-            set => this.RaiseAndSetIfChanged(ref _selectedVersion, value);
-        }
+    private async Task BrowseInputAsync()
+    {
+        var topLevel = TopLevel.GetTopLevel(App.MainWindow);
+        if (topLevel is null)
+            return;
 
-        public double Progress
-        {
-            get => _progress;
-            set => this.RaiseAndSetIfChanged(ref _progress, value);
-        }
-
-        public bool IsIndeterminateProgress
-        {
-            get => _isIndeterminateProgress;
-            set => this.RaiseAndSetIfChanged(ref _isIndeterminateProgress, value);
-        }
-
-        public string LogOutput
-        {
-            get => _logOutput;
-            set => this.RaiseAndSetIfChanged(ref _logOutput, value);
-        }
-
-        public string StatusMessage
-        {
-            get => _statusMessage;
-            set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
-        }
-
-        public CultureInfo CurrentLanguage
-        {
-            get => _currentLanguage;
-            set
-            {
-                if (_currentLanguage != value)
-                {
-                    this.RaiseAndSetIfChanged(ref _currentLanguage, value);
-                    Dispatcher.UIThread.Post(() => ChangeLanguage(value?.Name ?? "en-US"));
-                }
-            }
-        }
-
-        public List<string> AvailableVersions { get; } = new()
-        {
-            "VanillaClassic", "VanillaWarband", "Warband1171", "VanillaWFS", "WSE320", "WSE450", "Caribbean"
-        };
-
-        public List<CultureInfo> AvailableLanguages { get; } = new()
-        {
-            new CultureInfo("en-US"),
-            new CultureInfo("ru-RU")
-        };
-
-        public string AppTitle => _localization["AppTitle"];
-        public string InputSectionTitle => _localization["InputSectionTitle"];
-        public string InputPlaceholder => _localization["InputPlaceholder"];
-        public string BrowseButton => _localization["BrowseButton"];
-        public string OutputSectionTitle => _localization["OutputSectionTitle"];
-        public string OutputPlaceholder => _localization["OutputPlaceholder"];
-        public string EngineVersionTitle => _localization["EngineVersionTitle"];
-        public string DecompileButton => _localization["DecompileButton"];
-        public string StatusReady => _localization["StatusReady"];
-        public string SelectedInput => _localization["SelectedInput"];
-        public string OutputFolder => _localization["OutputFolder"];
-        public string ErrorNoInput => _localization["ErrorNoInput"];
-        public string ErrorNoOutput => _localization["ErrorNoOutput"];
-        public string ErrorCreateOutput => _localization["ErrorCreateOutput"];
-        public string StatusDecompiling => _localization["StatusDecompiling"];
-        public string StatusCompleted => _localization["StatusCompleted"];
-        public string StatusError => _localization["StatusError"];
-        public string FailedToProcess => _localization["FailedToProcess"];
-
-        public ReactiveCommand<Unit, Unit> BrowseInputCommand { get; }
-        public ReactiveCommand<Unit, Unit> BrowseOutputCommand { get; }
-        public ReactiveCommand<Unit, Unit> DecompileCommand { get; }
-
-        public MainWindowViewModel()
-        {
-            _localization = new LocalizationService();
-            _currentLanguage = AvailableLanguages[0];
-
-            var canExecuteOnUI = Observable.Return(true).ObserveOn(RxApp.MainThreadScheduler);
-
-            BrowseInputCommand = ReactiveCommand.CreateFromTask(
-                BrowseInputAsync, 
-                canExecute: canExecuteOnUI,
-                outputScheduler: RxApp.MainThreadScheduler);
-
-            BrowseOutputCommand = ReactiveCommand.CreateFromTask(
-                BrowseOutputAsync, 
-                canExecute: canExecuteOnUI,
-                outputScheduler: RxApp.MainThreadScheduler);
-
-            DecompileCommand = ReactiveCommand.CreateFromTask(
-                DecompileAsync, 
-                canExecute: canExecuteOnUI,
-                outputScheduler: RxApp.MainThreadScheduler);
-
-            Decompiler.LogMessage += OnLogMessageReceived;
-            UpdateStatusMessage();
-        }
-
-        private void ChangeLanguage(string languageCode)
-        {
-            _localization.SetLanguage(languageCode);
-            UpdateStatusMessage();
-            this.RaisePropertyChanged(string.Empty);
-        }
-
-        private void UpdateStatusMessage()
-        {
-            Dispatcher.UIThread.Post(() => StatusMessage = StatusReady);
-        }
-
-        private void OnLogMessageReceived(string message)
-        {
-            Dispatcher.UIThread.Post(() =>
-            {
-                LogOutput += $"{DateTime.Now:HH:mm:ss} {message}{Environment.NewLine}";
-                this.RaisePropertyChanged(nameof(LogOutput));
-            });
-        }
-
-        private async Task BrowseInputAsync()
-        {
-            var topLevel = TopLevel.GetTopLevel(App.MainWindow);
-            if (topLevel == null) return;
-
-            var options = new FilePickerOpenOptions
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions
             {
                 Title = InputSectionTitle,
-                AllowMultiple = false
-            };
-
-            var files = await topLevel.StorageProvider.OpenFilePickerAsync(options);
-
-            if (files.Count > 0)
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    InputPath = files[0].Path.LocalPath;
-                    StatusMessage = $"{SelectedInput}: {Path.GetFileName(InputPath)}";
-                });
-            }
-        }
-
-        private async Task BrowseOutputAsync()
-        {
-            var topLevel = TopLevel.GetTopLevel(App.MainWindow);
-            if (topLevel == null) return;
-
-            var options = new FolderPickerOpenOptions
-            {
-                Title = OutputSectionTitle
-            };
-
-            var folder = await topLevel.StorageProvider.OpenFolderPickerAsync(options);
-
-            if (folder.Count > 0)
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    OutputPath = folder[0].Path.LocalPath;
-                    StatusMessage = $"{OutputFolder}: {OutputPath}";
-                });
-            }
-        }
-
-        private async Task DecompileAsync()
-        {
-            if (string.IsNullOrWhiteSpace(InputPath))
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    LogOutput += $"[ERROR] {ErrorNoInput}{Environment.NewLine}";
-                    StatusMessage = ErrorNoInput;
-                });
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(OutputPath))
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    LogOutput += $"[ERROR] {ErrorNoOutput}{Environment.NewLine}";
-                    StatusMessage = ErrorNoOutput;
-                });
-                return;
-            }
-
-            try
-            {
-                Directory.CreateDirectory(OutputPath);
-            }
-            catch (Exception ex)
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    LogOutput += $"[ERROR] {ErrorCreateOutput}: {ex.Message}{Environment.NewLine}";
-                    StatusMessage = ErrorCreateOutput;
-                });
-                return;
-            }
-
-            Dispatcher.UIThread.Post(() =>
-            {
-                IsIndeterminateProgress = true;
-                Progress = 0;
-                StatusMessage = StatusDecompiling;
+                AllowMultiple = false,
             });
 
-            try
-            {
-                await Task.Run(() =>
-                {
-                    if (Directory.Exists(InputPath))
-                    {
-                        var files = Directory.GetFiles(InputPath, "*.*", SearchOption.AllDirectories)
-                            .Where(f => IsSupportedFileType(f))
-                            .ToList();
+        if (files.Count == 0)
+            return;
 
-                        int totalFiles = files.Count;
-                        int processedFiles = 0;
-
-                        foreach (var file in files)
-                        {
-                            try
-                            {
-                                var relativePath = GetRelativePath(InputPath, file);
-                                var outputFile = Path.Combine(OutputPath, relativePath);
-                                var outputDir = Path.GetDirectoryName(outputFile);
-                                if (outputDir != null)
-                                {
-                                    Directory.CreateDirectory(outputDir);
-                                }
-
-                                Decompiler.Decompile(file, outputFile, SelectedVersion);
-                                processedFiles++;
-
-                                Dispatcher.UIThread.Post(() => Progress = (double)processedFiles / totalFiles * 100);
-                            }
-                            catch (Exception ex)
-                            {
-                                Decompiler.RaiseLogMessage($"[ERROR] {FailedToProcess} {Path.GetFileName(file)}: {ex.Message}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var outputFile = Path.Combine(OutputPath, Path.GetFileName(InputPath));
-                        Decompiler.Decompile(InputPath, outputFile, SelectedVersion);
-                    }
-                });
-
-                Dispatcher.UIThread.Post(() => StatusMessage = StatusCompleted);
-            }
-            catch (Exception ex)
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    StatusMessage = StatusError;
-                    LogOutput += $"[FATAL ERROR] {ex.Message}{Environment.NewLine}";
-                    if (ex.InnerException != null)
-                    {
-                        LogOutput += $"[DETAIL] {ex.InnerException.Message}{Environment.NewLine}";
-                    }
-                });
-            }
-            finally
-            {
-                Dispatcher.UIThread.Post(() => IsIndeterminateProgress = false);
-            }
-        }
-
-        private bool IsSupportedFileType(string filePath)
+        RunOnUi(() =>
         {
-            string extension = Path.GetExtension(filePath)?.ToLowerInvariant() ?? string.Empty;
-            return extension is ".txt" or ".vsh" or ".psh" or ".fxc" or ".glsl";
+            InputPath = files[0].Path.LocalPath;
+            StatusMessage = $"{SelectedInput}: {Path.GetFileName(InputPath)}";
+        });
+    }
+
+    private async Task BrowseOutputAsync()
+    {
+        var topLevel = TopLevel.GetTopLevel(App.MainWindow);
+        if (topLevel is null)
+            return;
+
+        var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions { Title = OutputSectionTitle });
+
+        if (folders.Count == 0)
+            return;
+
+        RunOnUi(() =>
+        {
+            OutputPath = folders[0].Path.LocalPath;
+            StatusMessage = $"{OutputFolder}: {OutputPath}";
+        });
+    }
+
+    private async Task DecompileAsync()
+    {
+        var currentInputPath = InputPath;
+        var currentOutputPath = OutputPath;
+        var currentVersion = SelectedVersion;
+
+        if (string.IsNullOrWhiteSpace(currentInputPath))
+        {
+            AddError(ErrorNoInput, ErrorNoInput);
+            return;
         }
 
-        private string GetRelativePath(string fromPath, string toPath)
+        if (string.IsNullOrWhiteSpace(currentOutputPath))
         {
-            var fromUri = new Uri(NormalizePath(fromPath) + Path.DirectorySeparatorChar);
-            var toUri = new Uri(NormalizePath(toPath));
+            AddError(ErrorNoOutput, ErrorNoOutput);
+            return;
+        }
 
-            if (fromUri.Scheme != toUri.Scheme)
+        decompilationCancellation?.Dispose();
+        decompilationCancellation = new CancellationTokenSource();
+        var cancellationToken = decompilationCancellation.Token;
+
+        RunOnUi(() =>
+        {
+            IsIndeterminateProgress = true;
+            Progress = 0;
+            StatusMessage = StatusDecompiling;
+        });
+
+        try
+        {
+            var progressReporter = new Progress<DecompilationProgress>(UpdateProgress);
+            await Decomp.Core.Decompiler.DecompileAsync(
+                currentInputPath,
+                currentOutputPath,
+                currentVersion,
+                progressReporter,
+                cancellationToken);
+            RunOnUi(() => StatusMessage = StatusCompleted);
+        }
+        catch (OperationCanceledException)
+        {
+            RunOnUi(() => StatusMessage = StatusReady);
+        }
+        catch (Exception exception)
+        {
+            RunOnUi(() =>
             {
-                return toPath;
+                StatusMessage = StatusError;
+                LogOutput += $"[FATAL ERROR] {exception.Message}{Environment.NewLine}";
+                if (exception.InnerException is not null)
+                    LogOutput += $"[DETAIL] {exception.InnerException.Message}{Environment.NewLine}";
+            });
+        }
+        finally
+        {
+            RunOnUi(() => IsIndeterminateProgress = false);
+        }
+    }
+
+    private void UpdateProgress(DecompilationProgress update)
+    {
+        RunOnUi(() =>
+        {
+            if (update.TotalFiles > 0)
+            {
+                Progress = update.ProcessedFiles * 100d / update.TotalFiles;
+                IsIndeterminateProgress = false;
             }
 
-            var relativeUri = fromUri.MakeRelativeUri(toUri);
-            string relativePath = Uri.UnescapeDataString(relativeUri.ToString());
+            StatusMessage = update.Message;
+        });
+    }
 
-            return relativePath.Replace('/', Path.DirectorySeparatorChar);
-        }
-
-        private string NormalizePath(string path)
+    private void AddError(string logMessage, string status)
+    {
+        RunOnUi(() =>
         {
-            if (string.IsNullOrEmpty(path))
-                return path;
+            LogOutput += $"[ERROR] {logMessage}{Environment.NewLine}";
+            StatusMessage = status;
+        });
+    }
 
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? path.Replace('/', '\\')
-                : path.Replace('\\', '/');
-        }
+    private void RunOnUi(Action action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            action();
+        else
+            Dispatcher.UIThread.Post(action);
+    }
+
+    private static string NormalizePath(string? path)
+    {
+        return string.IsNullOrWhiteSpace(path)
+            ? string.Empty
+            : Decomp.Core.Decompiler.NormalizePath(path);
+    }
+
+    public void Dispose()
+    {
+        if (disposed)
+            return;
+
+        decompilationCancellation?.Cancel();
+        decompilationCancellation?.Dispose();
+        Decompiler.LogMessage -= OnLogMessageReceived;
+        disposed = true;
+        GC.SuppressFinalize(this);
     }
 }

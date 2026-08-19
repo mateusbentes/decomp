@@ -61,7 +61,7 @@ namespace Decomp.Core
 
 def write_vec(file,vec):
   file.write("" %f %f %f ""%vec)
-  
+
 def save_ground_specs():
   file = open(export_dir + ""Data/ground_specs.txt"",""w"")
   for ground_spec in ground_specs:
@@ -83,16 +83,16 @@ def save_c_header():
   file.write(""\n\n"")
   file.write(""\n#endif\n"")
   file.close()
-  
+
 def save_python_header():
   file = open(""./header_ground_types.py"",""w"")
-  for ig in xrange(len(ground_specs)):
+  for ig in range(len(ground_specs)):
     ground_spec = ground_specs[ig]
     file.write(""ground_%s = %d\n""%(ground_spec[0], ig))
   file.write(""\n\n"")
   file.close()
 
-print ""Exporting ground_spec data...""
+print(""Exporting ground_spec data..."")
 save_ground_specs()
 save_c_header()
 save_python_header()");

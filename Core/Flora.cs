@@ -19,8 +19,8 @@ namespace Decomp.Core
 
             if (dwDensity != 0) sbFlag.AppendFormat(CultureInfo.GetCultureInfo("en-US"),"density({0})|", dwDensity);
 
-            string[] strFlags = { "fkf_plain", "fkf_steppe", "fkf_snow", "fkf_desert", "fkf_plain_forest", 
-            "fkf_steppe_forest", "fkf_snow_forest", "fkf_desert_forest", "fkf_realtime_ligting", "fkf_point_up", "fkf_align_with_ground", 
+            string[] strFlags = { "fkf_plain", "fkf_steppe", "fkf_snow", "fkf_desert", "fkf_plain_forest",
+            "fkf_steppe_forest", "fkf_snow_forest", "fkf_desert_forest", "fkf_realtime_ligting", "fkf_point_up", "fkf_align_with_ground",
             "fkf_grass", "fkf_on_green_ground", "fkf_rock", "fkf_tree", "fkf_snowy", "fkf_guarantee", "fkf_speedtree", "fkf_has_colony_props" };
             DWORD[] dwFlags = { 0x00000004, 0x00000008, 0x00000010, 0x00000020, 0x00000400, 0x00000800, 0x00001000, 0x00002000, 0x00010000,
             0x00020000, 0x00040000, 0x00080000, 0x00100000, 0x00200000, 0x00400000, 0x00800000, 0x01000000, 0x02000000, 0x04000000 };
@@ -28,11 +28,11 @@ namespace Decomp.Core
             for (int i = 0; i < dwFlags.Length; i++)
             {
                 if ((dwFlag & dwFlags[i]) == 0) continue;
-                sbFlag.Append(strFlags[i]); 
+                sbFlag.Append(strFlags[i]);
                 sbFlag.Append('|');
                 dwFlag ^= dwFlags[i];
             }
-            
+
             if (sbFlag.Length == 0)
                 sbFlag.Append('0');
             else
@@ -64,8 +64,8 @@ namespace Decomp.Core
                     {
                         string strMeshName = fFloraKinds.GetWord(),
                             strMeshCollision = fFloraKinds.GetWord(),
-                            strAlternativeMeshName = fFloraKinds.GetWord(), //fFloraKinds.GetInt().ToString(CultureInfo.GetCultureInfo("en-US")),   
-                            strAlternativeCollision = fFloraKinds.GetWord(); //fFloraKinds.GetInt().ToString(CultureInfo.GetCultureInfo("en-US")); 
+                            strAlternativeMeshName = fFloraKinds.GetWord(), //fFloraKinds.GetInt().ToString(CultureInfo.GetCultureInfo("en-US")),
+                            strAlternativeCollision = fFloraKinds.GetWord(); //fFloraKinds.GetInt().ToString(CultureInfo.GetCultureInfo("en-US"));
                         //System.Windows.MessageBox.Show(strAlternativeMeshName, strAlternativeCollision);
                         fSource.Write("(\"{0}\", \"{1}\",(\"{2}\",\"{3}\")){4}", strMeshName, strMeshCollision,
                             strAlternativeMeshName, strAlternativeCollision, m == iNumMeshes - 1 ? "" : ",");
@@ -102,7 +102,7 @@ def save_fauna_kinds():
 
 def two_to_pow(x):
   result = 1
-  for i in xrange(x):
+  for i in range(x):
     result = result * 2
   return result
 
@@ -110,7 +110,7 @@ fauna_mask = 0x80000000000000000000000000000000
 low_fauna_mask =             0x8000000000000000
 def save_python_header():
   file = open(""./fauna_codes.py"",""w"")
-  for i_fauna_kind in xrange(len(fauna_kinds)):
+  for i_fauna_kind in range(len(fauna_kinds)):
     file.write(""%s_1 = 0x""%(fauna_kinds[i_fauna_kind][0]))
     file.write(""%x\n""%(fauna_mask | two_to_pow(i_fauna_kind)))
     file.write(""%s_2 = 0x""%(fauna_kinds[i_fauna_kind][0]))
@@ -119,7 +119,7 @@ def save_python_header():
     file.write(""%x\n""%(fauna_mask | ((low_fauna_mask|two_to_pow(i_fauna_kind)) << 64) | two_to_pow(i_fauna_kind)))
   file.close()
 
-print ""Exporting flora data...""
+print(""Exporting flora data..."")
 save_fauna_kinds()");
             fSource.Close();
             fFloraKinds.Close();

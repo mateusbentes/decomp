@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <AssemblyName>DecompilerGUI</AssemblyName>
+    <RootNamespace>DecompilerGUI</RootNamespace>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationIcon>Assets/knight.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -18,12 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Languages\Strings.resx" Condition="Exists('..\Languages\Strings.resx')">
-      <Link>Languages\Strings.resx</Link>
+    <Content Include="Languages/Strings.resx" Condition="Exists('../Languages/Strings.resx')">
+      <Link>Languages/Strings.resx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Languages\Strings.ru.resx" Condition="Exists('..\Languages\Strings.ru.resx')">
-      <Link>Languages\Strings.ru.resx</Link>
+    <Content Include="Languages/Strings.ru.resx" Condition="Exists('../Languages/Strings.ru.resx')">
+      <Link>Languages/Strings.ru.resx</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -34,30 +34,20 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.8" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.8" />
     <PackageReference Include="Avalonia.Skia" Version="11.3.8" />
-    <PackageReference Include="Avalonia.Native" Version="11.3.8" Condition="'$(RuntimeIdentifier)' == 'osx-x64' OR '$(RuntimeIdentifier)' == 'osx-arm64'" />
-    
+    <PackageReference Include="Avalonia.Native" Version="11.3.8" Condition="'$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'osx-arm64'" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="ReactiveUI" Version="20.1.1" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
     <PackageReference Include="SkiaSharp" Version="2.88.9" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.9" Condition="'$(RuntimeIdentifier)' == 'linux-x64' OR '$(RuntimeIdentifier)' == 'linux-arm64'" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.9" Condition="'$(RuntimeIdentifier)' == 'linux-x64' Or '$(RuntimeIdentifier)' == 'linux-arm64'" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-arm64'">
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'win-arm64'">
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Decomp">
-      <HintPath>..\bin\Debug\net10.0\Decomp.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="../Decomp.csproj" />
   </ItemGroup>
-
-  <Target Name="RemoveDuplicateResources" AfterTargets="Build">
-    <ItemGroup>
-      <DuplicateResources Include="$(OutputPath)DecompilerGUI/Languages/*.resx" />
-    </ItemGroup>
-    <Delete Files="@(DuplicateResources)" />
-  </Target>
 </Project>

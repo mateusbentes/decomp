@@ -1,215 +1,117 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using Decomp.Core;
 
-namespace DecompilerCLI
+namespace DecompilerCLI;
+
+internal static class Program
 {
-    internal class Program
+    private static async Task<int> Main(string[] args)
     {
-        static int Main(string[] args)
+        if (args.Length == 0 || args.Length > 3)
         {
-            try
+            PrintUsage();
+            return 1;
+        }
+
+        using var cancellation = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, eventArgs) =>
+        {
+            eventArgs.Cancel = true;
+            cancellation.Cancel();
+            Console.Error.WriteLine("Cancellation requested. Finishing the current operation...");
+        };
+
+        try
+        {
+            var inputPath = Decompiler.NormalizePath(args[0]);
+            var gameVersion = args.Length > 2 ? args[2] : "VanillaWarband";
+
+            if (!File.Exists(inputPath) && !Directory.Exists(inputPath))
             {
-                if (args.Length == 0)
-                {
-                    PrintUsage();
-                    return 1;
-                }
-
-                string inputPath = NormalizePath(args[0]);
-                string? outputPath = args.Length > 1 ? NormalizePath(args[1]) : null;
-                string gameVersion = args.Length > 2 ? args[2] : "VanillaWarband";
-
-                if (!File.Exists(inputPath) && !Directory.Exists(inputPath))
-                {
-                    Console.Error.WriteLine($"Error: Input path '{inputPath}' does not exist.");
-                    return 1;
-                }
-
-                if (Directory.Exists(inputPath))
-                {
-                    return DecompileFolder(inputPath, outputPath, gameVersion);
-                }
-
-                if (File.Exists(inputPath))
-                {
-                    return DecompileSingleFile(inputPath, outputPath, gameVersion);
-                }
-
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Error during decompilation: {ex.Message}");
-                if (ex.InnerException != null)
-                {
-                    Console.Error.WriteLine($"Details: {ex.InnerException.Message}");
-                }
+                Console.Error.WriteLine($"Error: Input path '{inputPath}' does not exist.");
                 return 1;
             }
-        }
 
-        private static int DecompileFolder(string inputPath, string? outputPath, string gameVersion)
+            var outputPath = ResolveOutputPath(inputPath, args.Length > 1 ? args[1] : null);
+            var progress = new Progress<DecompilationProgress>(ReportProgress);
+
+            Console.WriteLine($"Starting decompilation with game version '{gameVersion}'.");
+            await Decompiler.DecompileAsync(
+                inputPath,
+                outputPath,
+                gameVersion,
+                progress,
+                cancellation.Token).ConfigureAwait(false);
+            Console.WriteLine("Decompilation completed successfully.");
+            return 0;
+        }
+        catch (OperationCanceledException)
         {
-            if (outputPath == null)
-            {
-                outputPath = Path.Combine(inputPath, "decompiled");
-            }
-
-            if (!Directory.Exists(outputPath))
-            {
-                Directory.CreateDirectory(outputPath);
-            }
-
-            string[] files = Directory.GetFiles(inputPath);
-            int processedFiles = 0;
-            int failedFiles = 0;
-
-            Console.WriteLine($"Starting decompilation of {files.Length} files...");
-
-            foreach (string file in files)
-            {
-                try
-                {
-                    if (!IsSupportedFileType(file))
-                    {
-                        continue;
-                    }
-
-                    string outputFile = Path.Combine(
-                        outputPath,
-                        Path.GetFileNameWithoutExtension(file) + ".txt");
-
-                    Console.WriteLine($"Processing: {Path.GetFileName(file)}");
-                    Decompiler.Decompile(file, outputFile, gameVersion);
-                    processedFiles++;
-                }
-                catch (PlatformNotSupportedException ex)
-                {
-                    Console.Error.WriteLine($"Warning: Platform not supported for '{file}': {ex.Message}");
-                    failedFiles++;
-                }
-                catch (NotSupportedException ex)
-                {
-                    Console.Error.WriteLine($"Warning: File type not supported for '{file}': {ex.Message}");
-                    failedFiles++;
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"Warning: Failed to decompile '{file}': {ex.Message}");
-                    failedFiles++;
-                }
-            }
-
-            Console.WriteLine(
-                $"Decompilation complete. Processed: {processedFiles}, Failed: {failedFiles}, Total: {files.Length}.");
-
-            return failedFiles > 0 && processedFiles == 0 ? 1 : 0;
+            Console.Error.WriteLine("Decompilation canceled.");
+            return 2;
         }
-
-        private static int DecompileSingleFile(string inputPath, string? outputPath, string gameVersion)
+        catch (PlatformNotSupportedException exception)
         {
-            string outputFile;
-
-            if (outputPath == null)
-            {
-                outputFile = Path.ChangeExtension(inputPath, ".txt");
-            }
-            else if (Directory.Exists(outputPath))
-            {
-                outputFile = Path.Combine(
-                    outputPath,
-                    Path.GetFileNameWithoutExtension(inputPath) + ".txt");
-            }
-            else
-            {
-                outputFile = outputPath;
-                string? outputDirectory = Path.GetDirectoryName(outputFile);
-                if (!string.IsNullOrEmpty(outputDirectory) && !Directory.Exists(outputDirectory))
-                {
-                    Directory.CreateDirectory(outputDirectory);
-                }
-            }
-
-            try
-            {
-                Console.WriteLine($"Decompiling {Path.GetFileName(inputPath)}...");
-                Decompiler.Decompile(inputPath, outputFile, gameVersion);
-                Console.WriteLine($"Decompilation complete: '{outputFile}'");
-                return 0;
-            }
-            catch (PlatformNotSupportedException ex)
-            {
-                Console.Error.WriteLine($"Error: Platform not supported: {ex.Message}");
-                return 1;
-            }
-            catch (NotSupportedException ex)
-            {
-                Console.Error.WriteLine($"Error: File type not supported: {ex.Message}");
-                return 1;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Error: Failed to decompile '{inputPath}': {ex.Message}");
-                if (ex.InnerException != null)
-                {
-                    Console.Error.WriteLine($"Details: {ex.InnerException.Message}");
-                }
-                return 1;
-            }
+            Console.Error.WriteLine($"Error: Platform not supported: {exception.Message}");
+            return 1;
         }
-
-        private static bool IsSupportedFileType(string filePath)
+        catch (NotSupportedException exception)
         {
-            string extension = Path.GetExtension(filePath).ToLowerInvariant();
-            return extension is ".txt" or ".vsh" or ".psh" or ".fxc" or ".glsl";
+            Console.Error.WriteLine($"Error: File type or game version not supported: {exception.Message}");
+            return 1;
         }
-
-        private static string NormalizePath(string path)
+        catch (Exception exception)
         {
-            if (string.IsNullOrEmpty(path))
-                return path;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return path.Replace('/', '\\');
-            }
-            else
-            {
-                return path.Replace('\\', '/');
-            }
+            Console.Error.WriteLine($"Error during decompilation: {exception.Message}");
+            if (exception.InnerException is not null)
+                Console.Error.WriteLine($"Details: {exception.InnerException.Message}");
+            return 1;
         }
+    }
 
-        private static void PrintUsage()
+    private static string ResolveOutputPath(string inputPath, string? requestedOutputPath)
+    {
+        if (string.IsNullOrWhiteSpace(requestedOutputPath))
         {
-            Console.WriteLine("Warband Module Decompiler - Command Line Interface");
-            Console.WriteLine("==================================================");
-            Console.WriteLine();
-            Console.WriteLine("Usage: DecompilerCLI <input_file_or_folder> [output_file_or_folder] [game_version]");
-            Console.WriteLine();
-            Console.WriteLine("Supported platforms: Windows, macOS, Linux");
-            Console.WriteLine();
-            Console.WriteLine("Supported game versions:");
-            Console.WriteLine("  VanillaClassic    - Mount & Blade Classic");
-            Console.WriteLine("  VanillaWarband    - Mount & Blade: Warband (1.153)  [default]");
-            Console.WriteLine("  Warband1171       - Mount & Blade: Warband (1.171)");
-            Console.WriteLine("  VanillaWFS        - Mount & Blade: With Fire & Sword");
-            Console.WriteLine("  WSE320            - Warband Script Enhancer 3.2.0");
-            Console.WriteLine("  WSE450            - Warband Script Enhancer 4.5.0");
-            Console.WriteLine("  Caribbean         - Mount & Blade: Caribbean");
-            Console.WriteLine();
-            Console.WriteLine("Supported file formats:");
-            Console.WriteLine("  .txt              - Module system files");
-            Console.WriteLine("  .vsh / .psh       - DirectX text assembly shaders");
-            Console.WriteLine("  .fxc              - DirectX binary shaders");
-            Console.WriteLine("  .glsl             - OpenGL shaders");
-            Console.WriteLine();
-            Console.WriteLine("Examples:");
-            Console.WriteLine("  DecompilerCLI scripts.txt");
-            Console.WriteLine("  DecompilerCLI scripts.txt output.txt VanillaWarband");
-            Console.WriteLine("  DecompilerCLI ./module_folder ./decompiled Caribbean");
+            var inputDirectory = Directory.Exists(inputPath)
+                ? inputPath
+                : Path.GetDirectoryName(inputPath) ?? Directory.GetCurrentDirectory();
+            return Path.Combine(inputDirectory, "decompiled");
         }
+
+        var normalizedOutput = Decompiler.NormalizePath(requestedOutputPath);
+        if (Directory.Exists(inputPath) || !Path.GetExtension(inputPath).Equals(".txt", StringComparison.OrdinalIgnoreCase))
+            return normalizedOutput;
+
+        // Module text files produce several Python files, so a file input always targets a directory.
+        return Directory.Exists(normalizedOutput) || string.IsNullOrEmpty(Path.GetExtension(normalizedOutput))
+            ? normalizedOutput
+            : Path.GetDirectoryName(normalizedOutput) ?? Directory.GetCurrentDirectory();
+    }
+
+    private static void ReportProgress(DecompilationProgress update)
+    {
+        if (update.TotalFiles > 0)
+        {
+            Console.WriteLine($"[{update.ProcessedFiles}/{update.TotalFiles}] {update.Message}");
+            return;
+        }
+
+        Console.WriteLine(update.Message);
+    }
+
+    private static void PrintUsage()
+    {
+        Console.WriteLine("Warband Module Decompiler");
+        Console.WriteLine();
+        Console.WriteLine("Usage: DecompilerCLI <input_file_or_folder> [output_folder] [game_version]");
+        Console.WriteLine();
+        Console.WriteLine("Supported platforms: Windows, macOS, and Linux");
+        Console.WriteLine("Supported game versions: VanillaClassic, VanillaWarband, Warband1171,");
+        Console.WriteLine("  VanillaWFS, WSE320, WSE450, and Caribbean");
+        Console.WriteLine("Supported formats: .txt, .vsh, .psh, .fxc, and .glsl");
+        Console.WriteLine();
+        Console.WriteLine("Examples:");
+        Console.WriteLine("  DecompilerCLI scripts.txt");
+        Console.WriteLine("  DecompilerCLI ./Native ./src_python VanillaWarband");
     }
 }

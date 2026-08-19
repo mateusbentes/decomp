@@ -1,114 +1,175 @@
-using System;
 using System.Globalization;
-using System.IO;
 using System.Text;
 
-namespace Decomp.Core
+namespace Decomp.Core;
+
+/// <summary>
+/// Token and line reader for TaleWorlds text resources.
+/// </summary>
+public sealed class Text : IDisposable
 {
-    public class Text : IDisposable
+    private static readonly UTF8Encoding Utf8 = new(false, true);
+    private readonly StreamReader reader;
+    private readonly StringBuilder stringBuilder = new();
+    private bool disposed;
+
+    public Text(string filePath)
     {
-        private readonly StreamReader _reader;
-        private readonly StringBuilder _stringBuilder = new();
-        private bool _disposed;
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
-        public Text(string filePath)
+        var stream = new FileStream(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            64 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        reader = new StreamReader(
+            stream,
+            Utf8,
+            detectEncodingFromByteOrderMarks: true,
+            bufferSize: 64 * 1024);
+    }
+
+    public int Peek()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        return reader.Peek();
+    }
+
+    public string ReadWord()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        stringBuilder.Clear();
+
+        while (reader.Peek() != -1)
         {
-            if (string.IsNullOrEmpty(filePath))
-                throw new ArgumentNullException(nameof(filePath));
-
-            _reader = new StreamReader(filePath, Encoding.UTF8);
-        }
-
-        public int Peek() => _reader.Peek();
-
-        public string ReadWord()
-        {
-            _stringBuilder.Clear();
-            while (Peek() != -1)
+            var character = (char)reader.Read();
+            if (char.IsWhiteSpace(character))
             {
-                var character = (char)_reader.Read();
-                if (char.IsWhiteSpace(character))
-                {
-                    if (_stringBuilder.Length > 0) break;
-                    continue;
-                }
-                _stringBuilder.Append(character);
+                if (stringBuilder.Length > 0)
+                    break;
+
+                continue;
             }
-            return _stringBuilder.ToString();
+
+            stringBuilder.Append(character);
         }
 
-        public long ReadInt64()
-        {
-            var word = ReadWord();
-            return long.TryParse(word, out var result) ? result : 0;
-        }
+        return stringBuilder.ToString();
+    }
 
-        public ulong ReadUInt64()
-        {
-            var word = ReadWord();
-            return ulong.TryParse(word, out var result) ? result : 0;
-        }
+    public long ReadInt64()
+    {
+        var word = ReadWord();
+        return long.TryParse(
+            word,
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out var result)
+            ? result
+            : 0;
+    }
 
-        public int ReadInt() => (int)ReadInt64();
+    public ulong ReadUInt64()
+    {
+        var word = ReadWord();
+        return ulong.TryParse(
+            word,
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out var result)
+            ? result
+            : 0;
+    }
 
-        public uint ReadUInt() => (uint)ReadUInt64();
+    public int ReadInt() => (int)ReadInt64();
 
-        public uint ReadDWord() => (uint)ReadUInt64();
+    public uint ReadUInt() => (uint)ReadUInt64();
 
-        public double ReadDouble()
-        {
-            var word = ReadWord();
-            return double.TryParse(word, NumberStyles.Any, CultureInfo.InvariantCulture, out var result)
-                ? result
-                : 0.0;
-        }
+    public uint ReadDWord() => ReadUInt();
 
-        public string? ReadLine() => _reader.ReadLine();
+    public double ReadDouble()
+    {
+        var word = ReadWord();
+        return double.TryParse(
+            word,
+            NumberStyles.Float | NumberStyles.AllowThousands,
+            CultureInfo.InvariantCulture,
+            out var result)
+            ? result
+            : 0.0;
+    }
 
-        public string GetString()
-        {
-            var line = ReadLine();
-            return line ?? string.Empty;
-        }
+    public string? ReadLine()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        return reader.ReadLine();
+    }
 
-        public int GetInt() => ReadInt();
+    public string GetString() => ReadLine() ?? string.Empty;
 
-        public uint GetUInt() => ReadUInt();
+    public int GetInt() => ReadInt();
 
-        public long GetInt64() => ReadInt64();
+    public uint GetUInt() => ReadUInt();
 
-        public ulong GetUInt64() => ReadUInt64();
+    public long GetInt64() => ReadInt64();
 
-        public uint GetDWord() => ReadDWord();
+    public ulong GetUInt64() => ReadUInt64();
 
-        public double GetDouble() => ReadDouble();
+    public uint GetDWord() => ReadDWord();
 
-        public string GetWord() => ReadWord();
+    public double GetDouble() => ReadDouble();
 
-        public void Close() => _reader.Close();
+    public string GetWord() => ReadWord();
 
-        public static string? GetFirstLineFromFile(string filePath)
-        {
-            if (!File.Exists(filePath)) return null;
+    public void Close() => Dispose();
 
-            using var reader = new StreamReader(filePath);
-            return reader.ReadLine();
-        }
+    public static string? GetFirstLineFromFile(string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        if (!File.Exists(filePath))
+            return null;
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed) return;
+        using var reader = new StreamReader(
+            filePath,
+            Utf8,
+            detectEncodingFromByteOrderMarks: true,
+            bufferSize: 64 * 1024);
+        return reader.ReadLine();
+    }
 
-            if (disposing)
-                _reader.Dispose();
+    public static async Task<string?> GetFirstLineFromFileAsync(
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        if (!File.Exists(filePath))
+            return null;
 
-            _disposed = true;
-        }
+        await using var stream = new FileStream(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            64 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        using var reader = new StreamReader(
+            stream,
+            Utf8,
+            detectEncodingFromByteOrderMarks: true,
+            bufferSize: 64 * 1024,
+            leaveOpen: false);
+        return await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+    }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+    public void Dispose()
+    {
+        if (disposed)
+            return;
+
+        reader.Dispose();
+        disposed = true;
+        GC.SuppressFinalize(this);
     }
 }

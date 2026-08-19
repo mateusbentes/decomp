@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decomp", "Decomp.csproj", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecompilerGUI", "DecompilerGUI\DecompilerGUI.csproj", "{5D432037-EAC6-436B-8C58-B5569A45A4F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecompilerCLI", "DecompilerCLI\DecompilerCLI.csproj", "{6819A559-C04B-403C-8757-CCC409D06B8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{5D432037-EAC6-436B-8C58-B5569A45A4F8}.Release|x64.Build.0 = Release|Any CPU
 		{5D432037-EAC6-436B-8C58-B5569A45A4F8}.Release|x86.ActiveCfg = Release|Any CPU
 		{5D432037-EAC6-436B-8C58-B5569A45A4F8}.Release|x86.Build.0 = Release|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Debug|x64.Build.0 = Debug|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Debug|x86.Build.0 = Debug|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Release|x64.ActiveCfg = Release|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Release|x64.Build.0 = Release|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Release|x86.ActiveCfg = Release|Any CPU
+		{6819A559-C04B-403C-8757-CCC409D06B8A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

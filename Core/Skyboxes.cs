@@ -89,7 +89,7 @@ def save_skyboxes():
     file.write("" %f %d\n""%skybox[9])
   file.close()
 
-print ""Exporting skyboxes...""
+print(""Exporting skyboxes..."")
 save_skyboxes()");
             fSource.Close();
             fSkyboxes.Close();

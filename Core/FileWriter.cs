@@ -1,192 +1,219 @@
-using System;
 using System.Globalization;
-using System.IO;
 using System.Text;
 
-namespace Decomp.Core
+namespace Decomp.Core;
+
+/// <summary>
+/// Buffered writer used by legacy module emitters.
+/// </summary>
+public sealed class FileWriter : IDisposable
 {
-    public class FileWriter : IDisposable
+    private static readonly UTF8Encoding Utf8 = new(false, true);
+    private readonly StreamWriter? writer;
+    private readonly TextWriter? textWriter;
+    private readonly StringBuilder buffer = new();
+    private bool disposed;
+
+    public FileWriter(string fileName)
     {
-        private readonly StreamWriter? _writer;
-        private readonly TextWriter? _textWriter;
-        private readonly StringBuilder _sb = new();
-        private bool _disposed;
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        var directory = Path.GetDirectoryName(Path.GetFullPath(fileName));
+        if (!string.IsNullOrEmpty(directory))
+            Directory.CreateDirectory(directory);
 
-        public FileWriter(string fileName)
+        var stream = new FileStream(
+            fileName,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.None,
+            64 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        writer = new StreamWriter(
+            stream,
+            Utf8,
+            bufferSize: 64 * 1024)
         {
-            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
-            _writer = new StreamWriter(fileName, false, Encoding.UTF8);
-        }
+            NewLine = "\n",
+        };
+    }
 
-        public FileWriter(TextWriter textWriter)
-        {
-            _textWriter = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
-        }
+    public FileWriter(TextWriter textWriter)
+    {
+        this.textWriter = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
+    }
 
-        private void WriteToOutput(string value)
-        {
-            if (_writer != null)
-            {
-                _sb.Append(value);
-            }
-            else if (_textWriter != null)
-            {
-                _textWriter.Write(value);
-            }
-        }
+    private void WriteToOutput(string value)
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        if (writer is not null)
+            buffer.Append(value);
+        else
+            textWriter!.Write(value);
+    }
 
-        private void FlushToOutput()
-        {
-            if (_writer != null && _sb.Length > 0)
-            {
-                _writer.Write(_sb.ToString());
-                _sb.Clear();
-            }
-        }
+    private void FlushToOutput()
+    {
+        if (writer is null || buffer.Length == 0)
+            return;
 
-        public void Write(char value) => WriteToOutput(value.ToString());
-        public void Write(char[]? buffer) => WriteToOutput(new string(buffer ?? Array.Empty<char>()));
-        public void Write(string? value) => WriteToOutput(value ?? string.Empty);
-        public void Write(bool value) => WriteToOutput(value ? "True" : "False");
-        public void Write(int value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
-        public void Write(uint value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
-        public void Write(long value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
-        public void Write(ulong value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
-        public void Write(float value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
-        public void Write(double value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
-        public void Write(decimal value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
+        writer.Write(buffer.ToString());
+        buffer.Clear();
+    }
 
-        public void Write(object? value)
-        {
-            if (value == null) return;
+    public void Write(char value) => WriteToOutput(value.ToString());
+
+    public void Write(char[]? value) => WriteToOutput(new string(value ?? []));
+
+    public void Write(string? value) => WriteToOutput(value ?? string.Empty);
+
+    public void Write(bool value) => WriteToOutput(value ? "True" : "False");
+
+    public void Write(int value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
+
+    public void Write(uint value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
+
+    public void Write(long value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
+
+    public void Write(ulong value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
+
+    public void Write(float value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
+
+    public void Write(double value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
+
+    public void Write(decimal value) => WriteToOutput(value.ToString(CultureInfo.InvariantCulture));
+
+    public void Write(object? value)
+    {
+        if (value is not null)
             WriteToOutput(value.ToString() ?? string.Empty);
-        }
+    }
 
-        public void Write(string format, params object?[] args)
-        {
-            if (format == null) return;
-            WriteToOutput(string.Format(CultureInfo.InvariantCulture, format, args));
-        }
+    public void Write(string format, params object?[] args)
+    {
+        ArgumentNullException.ThrowIfNull(format);
+        WriteToOutput(string.Format(CultureInfo.InvariantCulture, format, args));
+    }
 
-        public void WriteLine()
-        {
-            WriteToOutput(Environment.NewLine);
-            FlushToOutput();
-        }
+    public void WriteLine() => WriteToOutput("\n");
 
-        public void WriteLine(char value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(char value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(char[]? buffer)
-        {
-            Write(buffer);
-            WriteLine();
-        }
+    public void WriteLine(char[]? value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(bool value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(bool value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(int value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(int value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(uint value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(uint value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(long value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(long value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(ulong value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(ulong value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(float value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(float value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(double value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(double value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(decimal value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(decimal value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(string? value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(string? value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(object? value)
-        {
-            Write(value);
-            WriteLine();
-        }
+    public void WriteLine(object? value)
+    {
+        Write(value);
+        WriteLine();
+    }
 
-        public void WriteLine(string format, params object?[] args)
-        {
-            Write(format, args);
-            WriteLine();
-        }
+    public void WriteLine(string format, params object?[] args)
+    {
+        Write(format, args);
+        WriteLine();
+    }
 
-        public void Close()
-        {
-            FlushToOutput();
-            _writer?.Close();
-        }
+    public void Close() => Dispose();
 
-        public void Flush()
-        {
-            FlushToOutput();
-            _writer?.Flush();
-        }
+    public void Flush()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        FlushToOutput();
+        writer?.Flush();
+    }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    Flush();
-                    _writer?.Dispose();
-                }
-                _disposed = true;
-            }
-        }
+    public void Dispose()
+    {
+        if (disposed)
+            return;
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        FlushToOutput();
+        writer?.Dispose();
+        disposed = true;
+        GC.SuppressFinalize(this);
+    }
 
-        public static void WriteAllText(string fileName, string content)
-        {
-            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
-            File.WriteAllText(fileName, content, Encoding.UTF8);
-        }
+    public static void WriteAllText(string fileName, string content)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        ArgumentNullException.ThrowIfNull(content);
+        var directory = Path.GetDirectoryName(Path.GetFullPath(fileName));
+        if (!string.IsNullOrEmpty(directory))
+            Directory.CreateDirectory(directory);
+        File.WriteAllText(fileName, content, Utf8);
+    }
+
+    public static async Task WriteAllTextAsync(
+        string fileName,
+        string content,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        ArgumentNullException.ThrowIfNull(content);
+        var directory = Path.GetDirectoryName(Path.GetFullPath(fileName));
+        if (!string.IsNullOrEmpty(directory))
+            Directory.CreateDirectory(directory);
+        await File.WriteAllTextAsync(fileName, content, Utf8, cancellationToken).ConfigureAwait(false);
     }
 }

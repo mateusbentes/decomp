@@ -1,83 +1,101 @@
-# Decomp: Classic Taleworlds Engine Module Decompiler (CLI)
+# Warband Module Decompiler
 
-A high-performance, cross-platform command-line tool that decompiles compiled module text files (`.txt`) back into Python source code (`.py`) compatible with the official Module System.
+A cross-platform decompiler for classic TaleWorlds Engine module resources. The project reads compiled module text files and supported shader resources, then emits Python 3 source files compatible with the classic Module System workflow.
 
-This is a modernized, headless fork of the original WPF decompiler, rewritten to run natively on **.NET 10** across Linux, macOS, and Windows.
-
----
+The repository targets **.NET 10** and **C# 14** and builds on Windows, macOS, and Linux. It contains a reusable core library, an asynchronous command-line application, and an Avalonia desktop application.
 
 ## Features
 
-- **Headless & Cross-Platform:** No Windows-only UI dependencies. Works natively on Linux/macOS.
-- **Directory-to-Directory Processing:** Automatically scans a game module directory and decompiles all main files in one run.
-- **Multi-Game Support:** Supports multiple game versions and spin-offs based on the Taleworlds engine (such as Warband, With Fire And Sword, WSE, and Caribbean).
+The decompiler preserves the original TaleWorlds resource formats while providing a modern execution model. Module directories can be processed as a unit, shared identifier tables are initialized before dependent resources are emitted, and progress updates are exposed to both CLI and GUI consumers. File paths are normalized at runtime, UTF-8 input is validated, and generated Python files use stable UTF-8 output with Unix line endings.
 
----
+The supported game and engine profiles are:
 
-## Usage
+| Profile | Description |
+| --- | --- |
+| `VanillaClassic` | Original Mount & Blade resource formats |
+| `VanillaWarband` | Mount & Blade: Warband 1.153-compatible operators |
+| `Warband1171` | Mount & Blade: Warband 1.171-compatible operators |
+| `VanillaWFS` | Mount & Blade: With Fire & Sword |
+| `WSE320` | Warband Script Enhancer 3.2.0 |
+| `WSE450` | Warband Script Enhancer 4.5.0 |
+| `Caribbean` | Caribbean! and Blood & Gold: Caribbean! |
 
-Run the compiled executable pointing to your compiled module folder and your desired output directory:
+Supported resource extensions are `.txt`, `.vsh`, `.psh`, `.fxc`, and `.glsl`. DirectX text shaders and GLSL files are preserved with the standard shader header. DirectX bytecode files use DirectX disassembly on Windows when available and fall back to `dxbc-disassembler` on other platforms.
 
-`./Decomp <input_directory> <output_directory> [game_version]`
+## CLI usage
 
-Example:
+Build the complete solution first:
 
-`./Decomp ~/.steam/steam/steamapps/common/Mount\&\Blade\ Warband/Modules/Native ./src_python VanillaWarband`
+```bash
+dotnet build Decomp.sln
+```
 
-Supported Game/Engine Versions:
+Run the command-line decompiler with an input file or module directory. The output path is a directory containing the generated Python files.
 
-    VanillaClassic (Original Mount & Blade)
+```bash
+dotnet run --project DecompilerCLI/DecompilerCLI.csproj -- \
+  ./path/to/module \
+  ./path/to/decompiled \
+  VanillaWarband
+```
 
-    VanillaWarband (M&B: Warband)
+For a single resource file:
 
-    VanillaWFS (M&B: With Fire & Sword)  
+```bash
+dotnet run --project DecompilerCLI/DecompilerCLI.csproj -- \
+  ./path/to/module/scripts.txt \
+  ./path/to/decompiled \
+  VanillaWarband
+```
 
-    WSE320 / WSE450 (Warband Script Enhancer)
+If the output directory is omitted, the decompiler creates a `decompiled` directory next to the input module or resource.
 
-    Caribbean (Caribbean! / Blood & Gold: Caribbean!)
+The CLI supports cancellation with `Ctrl+C`. The core operation also accepts a `CancellationToken` and reports typed progress through `DecompilationProgress`.
 
-🛠️ Compilation & Publishing
-1. Everyday Development Builds
+## Desktop application
 
-To test individual changes during development without cross-compiling, use the target-specific commands:
-Bash
+Build and run the Avalonia application with:
 
-# To update the core engine binary (Required if you change core logic)
-`dotnet build Decomp.csproj`
+```bash
+dotnet run --project DecompilerGUI/DecompilerGUI.csproj
+```
 
-# To build the desktop GUI application
-`dotnet build DecompilerGUI/DecompilerGUI.csproj`
+The GUI uses ReactiveUI’s Avalonia main-thread scheduler. File processing, metadata reads, shader disassembly, output copying, and module orchestration run through asynchronous APIs, while progress, status messages, and logs are marshaled back to the Avalonia UI thread.
 
-2. Cross-Platform Publishing (Production Releases)
+## Publishing
 
-To build production-ready, self-contained single-file executables for all platforms, ensure the core engine is built, then trigger the publish commands:
+The application can be published as a self-contained single-file executable for the supported runtime identifiers:
 
-Windows X86 64 Bits
+```bash
+dotnet publish DecompilerGUI/DecompilerGUI.csproj \
+  -c Release \
+  -r linux-x64 \
+  --self-contained true \
+  -p:PublishSingleFile=true
+```
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
+Replace `linux-x64` with `linux-arm64`, `win-x64`, `win-arm64`, `osx-x64`, or `osx-arm64` as required. The CLI can be published using the same options with `DecompilerCLI/DecompilerCLI.csproj`.
 
-Windows Arm 64 Bits
+## Python 3 compiler workflow
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
+The decompiler emits **Python 3-compatible** module source. To compile the generated module system back into the classic `.txt` resources, use the modern community compiler fork [Vetrogor/wreck](https://github.com/Vetrogor/wreck), which is the recommended toolchain for this project.
 
-macOS Intel
+Before compiling a generated module, review its source and verify that you have permission to use the original module’s assets and scripts. Decompilation and redistribution should respect the rights of the original authors and the applicable game and mod licenses.
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
+## Architecture
 
-macOS Apple Silicon
+The solution is organized into three layers:
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
+| Project | Responsibility |
+| --- | --- |
+| `Decomp.csproj` | Core parsers, resource handlers, operator tables, shader support, and asynchronous orchestration |
+| `DecompilerCLI/DecompilerCLI.csproj` | Cancellation-aware command-line interface and progress reporting |
+| `DecompilerGUI/DecompilerGUI.csproj` | Avalonia and ReactiveUI desktop interface |
 
-Linux x86 64 Bits
+The legacy resource handlers remain synchronous internally because they expose the established TaleWorlds parsing API. They are isolated behind the asynchronous `Decompiler.DecompileAsync` coordinator, which performs asynchronous file discovery, header reads, variable copying, shader processing, cancellation checks, and progress reporting without blocking the UI thread.
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
+## Development requirements
 
-Linux Arm 64 Bits
+Install the .NET 10 SDK and use a shell appropriate for the host platform. The repository applies C# 14, nullable reference types, implicit usings, deterministic builds, and invariant numeric formatting through `Directory.Build.props`.
 
-`dotnet publish DecompilerGUI/DecompilerGUI.csproj -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true`
-
-⚠️ IMPORTANT!!!
-
-This program is published solely for educational purposes and personal mod development.
-
-Using this tool to decompile someone else's mod and publishing their assets, scripts, or code as your own without explicit consent from the original authors is highly discouraged and regarded as plagiarism. Please respect the modding community's hard work.
+This project is intended for educational use and personal mod development. Do not publish another author’s assets, scripts, or source code as your own without explicit permission.
